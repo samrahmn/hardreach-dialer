@@ -107,8 +107,8 @@ class WebhookService : Service() {
     private fun pollForCalls() {
         val prefs = getSharedPreferences("hardreach_dialer", Context.MODE_PRIVATE)
         val serverUrl = prefs.getString("server_url", "")?.trim() ?: ""
-        val apiKey = prefs.getString("api_key", "")?.trim() ?: ""
-        
+        val apiKey = prefs.getString("api_key", "")?.replace("\\s".toRegex(), "") ?: ""
+
         if (serverUrl.isEmpty() || apiKey.isEmpty()) {
             Log.w(TAG, "Server URL or API key not configured")
             return

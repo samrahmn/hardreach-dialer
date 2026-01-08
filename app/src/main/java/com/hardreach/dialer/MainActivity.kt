@@ -28,7 +28,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var logText: TextView
     
     private val PERMISSIONS_REQUEST_CODE = 100
-    
+
+    private fun cleanApiKey(key: String): String {
+        return key.replace("\\s".toRegex(), "")
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -62,15 +66,15 @@ class MainActivity : AppCompatActivity() {
     
     private fun testPoll() {
         val serverUrl = serverUrlInput.text.toString().trim()
-        val apiKey = apiKeyInput.text.toString().trim()
-        
+        val apiKey = cleanApiKey(apiKeyInput.text.toString())
+
         if (serverUrl.isEmpty() || apiKey.isEmpty()) {
             Toast.makeText(this, "Enter URL and API Key first", Toast.LENGTH_SHORT).show()
             return
         }
-        
-        logText.text = "Testing poll...\nURL: $serverUrl/api/dialer/pending-calls"
-        
+
+        logText.text = "Testing poll...\nURL: $serverUrl/api/dialer/pending-calls\nAPI Key: ${apiKey.take(10)}..."
+
         thread {
             try {
                 val client = OkHttpClient()
@@ -111,7 +115,7 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("hardreach_dialer", MODE_PRIVATE)
         prefs.edit().apply {
             putString("server_url", serverUrlInput.text.toString().trim())
-            putString("api_key", apiKeyInput.text.toString().trim())
+            putString("api_key", cleanApiKey(apiKeyInput.text.toString()))
             putBoolean("service_enabled", serviceSwitch.isChecked)
             apply()
         }

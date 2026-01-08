@@ -6,102 +6,116 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.telecom.TelecomManager
+import android.telephony.TelephonyManager
 import android.util.Log
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 
+/**
+ * Timer-based call manager for Android 14+ compatibility
+ * Uses time-based assumptions instead of call state detection
+ */
 class CallManager(private val context: Context) {
 
     private val TAG = "CallManager"
     private val handler = Handler(Looper.getMainLooper())
-    private val stateManager = CallStateManager(context)
+    private val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+    private val client = OkHttpClient()
 
-    // Increased from 8s to 15s for international calls
-    private val FIRST_CALL_ANSWER_WAIT = 15000L
+    // Timings
+    private val FIRST_CALL_WAIT = 15000L // 15s for Crissa to answer
+    private val SECOND_CALL_WAIT = 12000L // 12s for prospect to answer
+    private val MERGE_DELAY = 2000L // 2s before merge attempt
 
-    // Check for prospect answer every 2 seconds
-    private val PROSPECT_ANSWER_CHECK_INTERVAL = 2000L
-    private val MAX_PROSPECT_WAIT = 20000L // Max 20 seconds to wait for prospect answer
+    private var currentCallId: Int? = null
+    private var callStartTime = 0L
 
     /**
-     * Initiates automated conference call with robust state monitoring:
-     * 1. Start monitoring call states
-     * 2. Call team member first
-     * 3. Wait up to 15 seconds for team member to answer
-     * 4. If answered, call prospect
-     * 5. Wait for prospect to answer (check every 2s, max 20s)
-     * 6. When both connected, merge
-     * 7. Mark as completed/failed automatically based on outcomes
+     * Timer-based conference call flow (Android 14+ compatible):
+     * 1. Call team member, wait 15s
+     * 2. Check if call still active (>5s duration = answered)
+     * 3. If yes: call prospect, wait 12s
+     * 4. Attempt merge
+     * 5. Mark as completed
      */
     fun initiateConferenceCall(callId: Int, teamMemberNumber: String, contactNumber: String) {
-        Log.i(TAG, "=== Initiating Conference Call ===")
+        Log.i(TAG, "=== Timer-Based Conference Call ===")
         Log.i(TAG, "Call ID: $callId")
         Log.i(TAG, "Team Member: $teamMemberNumber")
         Log.i(TAG, "Prospect: $contactNumber")
+        Log.i(TAG, "Mode: Timer-based (Android 14 compatible)")
 
-        // Start monitoring call states
-        stateManager.startMonitoring(callId, teamMemberNumber, contactNumber)
+        currentCallId = callId
+        callStartTime = System.currentTimeMillis()
 
         // Step 1: Call team member
         makeCall(teamMemberNumber)
         Log.i(TAG, "Step 1: Calling team member...")
+        Log.i(TAG, "Will check status at 15 seconds...")
 
-        // Step 2: Wait 15 seconds to check if team member answered
+        // Step 2: Check at 15 seconds
         handler.postDelayed({
-            if (stateManager.isFirstCallAnswered()) {
-                Log.i(TAG, "✓ Team member answered - proceeding to call prospect")
+            val callDuration = System.currentTimeMillis() - callStartTime
+            val callState = telephonyManager.callState
 
-                // Step 3: Call prospect (this creates second call)
-                stateManager.setSecondCallInProgress()
-                makeCall(contactNumber)
-                Log.i(TAG, "Step 2: Calling prospect...")
+            Log.i(TAG, "15s checkpoint: Call duration=${callDuration}ms, State=$callState")
 
-                // Step 4: Poll for prospect answer, then merge when both connected
-                waitForProspectAndMerge()
-
-            } else {
-                Log.w(TAG, "✗ Team member did not answer within 15 seconds")
-                Log.w(TAG, "Cancelling call flow - state manager will mark as failed")
-                // State manager will handle marking as failed when call ends
+            // Check if call is still active
+            if (callState == TelephonyManager.CALL_STATE_IDLE) {
+                // Call ended already (failed/rejected/no balance)
+                Log.w(TAG, "✗ Call ended before 15s (duration: ${callDuration/1000}s)")
+                Log.w(TAG, "Marking as FAILED - likely rejected or no balance")
+                updateCallStatus(callId, "failed")
+                cleanup()
+                return@postDelayed
             }
-        }, FIRST_CALL_ANSWER_WAIT)
-    }
 
-    /**
-     * Polls every 2 seconds to check if prospect answered
-     * Once both calls are connected, attempts merge
-     * Max wait: 20 seconds
-     */
-    private fun waitForProspectAndMerge() {
-        var waitTime = 0L
-
-        val checkRunnable = object : Runnable {
-            override fun run() {
-                waitTime += PROSPECT_ANSWER_CHECK_INTERVAL
-
-                if (stateManager.isSecondCallAnswered()) {
-                    // Prospect answered!
-                    Log.i(TAG, "✓✓ Both calls connected - attempting merge")
-
-                    // Small delay to ensure both calls are stable
-                    handler.postDelayed({
-                        mergeCallsToConference()
-                    }, 1000)
-
-                } else if (waitTime >= MAX_PROSPECT_WAIT) {
-                    // Timeout waiting for prospect
-                    Log.w(TAG, "✗ Prospect did not answer within 20 seconds")
-                    Log.w(TAG, "Merge cancelled - state manager will mark as failed")
-                    // State manager will handle marking as failed
-
-                } else {
-                    // Keep checking
-                    Log.d(TAG, "Waiting for prospect to answer... (${waitTime/1000}s elapsed)")
-                    handler.postDelayed(this, PROSPECT_ANSWER_CHECK_INTERVAL)
-                }
+            if (callDuration < 5000) {
+                // Call too short, likely failed
+                Log.w(TAG, "✗ Call duration too short: ${callDuration/1000}s")
+                Log.w(TAG, "Marking as FAILED")
+                updateCallStatus(callId, "failed")
+                cleanup()
+                return@postDelayed
             }
-        }
 
-        // Start checking after 3 seconds (give time for call to ring)
-        handler.postDelayed(checkRunnable, 3000)
+            // Call is still active after 15s - assume Crissa answered
+            Log.i(TAG, "✓ Call active for ${callDuration/1000}s - assuming answered")
+            Log.i(TAG, "Step 2: Calling prospect...")
+
+            // Step 3: Call prospect
+            makeCall(contactNumber)
+
+            // Step 4: Wait 12 seconds for prospect to answer
+            handler.postDelayed({
+                Log.i(TAG, "12s elapsed - assuming prospect answered")
+                Log.i(TAG, "Step 3: Attempting merge...")
+
+                // Step 5: Attempt merge
+                handler.postDelayed({
+                    mergeCallsToConference()
+
+                    // Step 6: Mark as completed
+                    Log.i(TAG, "✓✓ Conference flow complete - marking as COMPLETED")
+                    updateCallStatus(callId, "completed")
+                    cleanup()
+
+                }, MERGE_DELAY)
+
+            }, SECOND_CALL_WAIT)
+
+        }, FIRST_CALL_WAIT)
+
+        // Overall timeout: 2 minutes max
+        handler.postDelayed({
+            Log.w(TAG, "Overall timeout (2 min) - cleaning up")
+            if (currentCallId != null) {
+                updateCallStatus(callId, "failed")
+            }
+            cleanup()
+        }, 120000)
     }
 
     /**
@@ -122,36 +136,77 @@ class CallManager(private val context: Context) {
 
     /**
      * Merge active calls into conference
-     * Only called when both calls are confirmed connected
      */
     private fun mergeCallsToConference() {
         try {
-            // Verify both calls are still connected before merge
-            if (!stateManager.areBothCallsConnected()) {
-                Log.w(TAG, "Cannot merge - both calls not connected")
-                return
-            }
-
             val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-
-            // Android doesn't provide direct API to merge calls programmatically
-            // This requires MODIFY_PHONE_STATE permission (system apps only)
-            // Workaround: Simulate keypress to merge
 
             val intent = Intent("android.intent.action.PERFORM_CDMA_CALL_WAITING_ACTION")
             intent.putExtra("com.android.phone.MERGE_CALLS", true)
             context.sendBroadcast(intent)
 
-            Log.i(TAG, "✓ Conference merge attempted")
+            Log.i(TAG, "✓ Merge attempted")
             Log.i(TAG, "Note: If merge doesn't work automatically, tap 'Merge' button on phone")
 
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to merge calls: ${e.message}")
-            Log.i(TAG, "User will need to manually tap 'Merge' button")
+            Log.e(TAG, "Merge failed: ${e.message}")
+            Log.i(TAG, "User may need to manually tap 'Merge' button")
         }
     }
 
-    fun cleanup() {
-        stateManager.stopMonitoring()
+    /**
+     * Update call status in CRM database
+     */
+    private fun updateCallStatus(callId: Int, status: String) {
+        if (currentCallId == null) {
+            Log.d(TAG, "Status already updated, skipping duplicate")
+            return
+        }
+
+        currentCallId = null // Prevent duplicate updates
+
+        Thread {
+            try {
+                val prefs = context.getSharedPreferences("hardreach_dialer", Context.MODE_PRIVATE)
+                val serverUrl = prefs.getString("server_url", "")?.trim() ?: ""
+                val apiKey = prefs.getString("api_key", "")?.replace("\\s".toRegex(), "") ?: ""
+
+                if (serverUrl.isEmpty() || apiKey.isEmpty()) {
+                    Log.w(TAG, "Cannot update status - no server config")
+                    return@Thread
+                }
+
+                val json = JSONObject()
+                json.put("status", status)
+
+                val body = json.toString().toRequestBody("application/json".toMediaType())
+
+                val request = Request.Builder()
+                    .url("$serverUrl/api/dialer/pending-calls/$callId")
+                    .addHeader("Authorization", "Bearer $apiKey")
+                    .patch(body)
+                    .build()
+
+                val response = client.newCall(request).execute()
+
+                if (response.isSuccessful) {
+                    Log.i(TAG, "✓ Call $callId marked as $status in database")
+                } else {
+                    Log.e(TAG, "Failed to update status: ${response.code}")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error updating call status: ${e.message}", e)
+            }
+        }.start()
+    }
+
+    private fun cleanup() {
+        handler.removeCallbacksAndMessages(null)
+        currentCallId = null
+        Log.d(TAG, "Cleanup complete")
+    }
+
+    fun shutdown() {
+        cleanup()
     }
 }

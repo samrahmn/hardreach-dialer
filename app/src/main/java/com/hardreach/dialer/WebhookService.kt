@@ -143,11 +143,12 @@ class WebhookService : Service() {
             
             if (calls.length() > 0) {
                 val call = calls.getJSONObject(0)
+                val callId = call.getInt("id")
                 val teamMemberNumber = call.getString("team_member_number")
                 val contactNumber = call.getString("contact_number")
-                
-                Log.i(TAG, "Initiating call: $teamMemberNumber -> $contactNumber")
-                callManager.initiateConferenceCall(teamMemberNumber, contactNumber)
+
+                Log.i(TAG, "Initiating call ID $callId: $teamMemberNumber -> $contactNumber")
+                callManager.initiateConferenceCall(callId, teamMemberNumber, contactNumber)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Polling exception: ${e.message}", e)

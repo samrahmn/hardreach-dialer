@@ -12,7 +12,16 @@
         android:text="Status: Stopped"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:layout_marginBottom="24dp" />
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/test_poll_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TEST POLL NOW"
+        android:textStyle="bold"
+        android:layout_marginBottom="24dp"
+        android:backgroundTint="#FF5722" />
 
     <TextView
         android:layout_width="match_parent"
@@ -70,10 +79,12 @@
         android:layout_marginTop="24dp" />
 
     <TextView
+        android:id="@+id/log_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="How it works:\n\n1. Enable service above\n2. App runs in background\n3. When CRM triggers call, app will:\n   • Call you first\n   • Then call the contact\n   • Merge into conference call"
+        android:text="Logs will appear here..."
         android:textSize="12sp"
-        android:layout_marginTop="32dp"
-        android:alpha="0.7" />
+        android:layout_marginTop="24dp"
+        android:fontFamily="monospace"
+        android:textColor="#666" />
 </LinearLayout>

@@ -13,6 +13,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import okhttp3.*
+import java.io.IOException
+import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
     
@@ -20,7 +23,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var apiKeyInput: EditText
     private lateinit var serviceSwitch: Switch
     private lateinit var saveButton: Button
+    private lateinit var testPollButton: Button
     private lateinit var statusText: TextView
+    private lateinit var logText: TextView
     
     private val PERMISSIONS_REQUEST_CODE = 100
     
@@ -34,16 +39,64 @@ class MainActivity : AppCompatActivity() {
         updateUI()
     }
     
+    override fun onResume() {
+        super.onResume()
+        updateUI()
+    }
+    
     private fun initializeViews() {
         serverUrlInput = findViewById(R.id.server_url)
         apiKeyInput = findViewById(R.id.api_key)
         serviceSwitch = findViewById(R.id.service_switch)
         saveButton = findViewById(R.id.save_button)
+        testPollButton = findViewById(R.id.test_poll_button)
         statusText = findViewById(R.id.status_text)
+        logText = findViewById(R.id.log_text)
         
         saveButton.setOnClickListener { saveSettings() }
+        testPollButton.setOnClickListener { testPoll() }
         serviceSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) startWebhookService() else stopWebhookService()
+        }
+    }
+    
+    private fun testPoll() {
+        val serverUrl = serverUrlInput.text.toString().trim()
+        val apiKey = apiKeyInput.text.toString().trim()
+        
+        if (serverUrl.isEmpty() || apiKey.isEmpty()) {
+            Toast.makeText(this, "Enter URL and API Key first", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        logText.text = "Testing poll...\nURL: $serverUrl/api/dialer/pending-calls"
+        
+        thread {
+            try {
+                val client = OkHttpClient()
+                val request = Request.Builder()
+                    .url("$serverUrl/api/dialer/pending-calls")
+                    .addHeader("Authorization", "Bearer $apiKey")
+                    .get()
+                    .build()
+                
+                val response = client.newCall(request).execute()
+                val body = response.body?.string() ?: "No body"
+                
+                runOnUiThread {
+                    logText.text = "Response [${response.code}]:\n$body"
+                    if (response.isSuccessful) {
+                        Toast.makeText(this, "✅ Poll successful!", Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(this, "❌ Poll failed: ${response.code}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    logText.text = "Error:\n${e.message}"
+                    Toast.makeText(this, "❌ Error: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
     
@@ -57,8 +110,8 @@ class MainActivity : AppCompatActivity() {
     private fun saveSettings() {
         val prefs = getSharedPreferences("hardreach_dialer", MODE_PRIVATE)
         prefs.edit().apply {
-            putString("server_url", serverUrlInput.text.toString())
-            putString("api_key", apiKeyInput.text.toString())
+            putString("server_url", serverUrlInput.text.toString().trim())
+            putString("api_key", apiKeyInput.text.toString().trim())
             putBoolean("service_enabled", serviceSwitch.isChecked)
             apply()
         }

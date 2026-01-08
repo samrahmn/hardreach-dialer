@@ -104,32 +104,35 @@ class WebhookService : Service() {
             }
             
             override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    if (!it.isSuccessful) {
-                        Log.e(TAG, "Polling failed: ${it.code}")
-                        return
-                    }
+                if (!response.isSuccessful) {
+                    Log.e(TAG, "Polling failed: ${response.code}")
+                    return
+                }
+                
+                val body = response.body?.string()
+                if (body == null) {
+                    Log.e(TAG, "Empty response body")
+                    return
+                }
+                
+                Log.d(TAG, "Response: $body")
+                
+                try {
+                    val json = JSONObject(body)
+                    val calls = json.getJSONArray("calls")
                     
-                    val body = it.body?.string() ?: return
-                    Log.d(TAG, "Response: $body")
-                    
-                    try {
-                        val json = JSONObject(body)
-                        val calls = json.getJSONArray("calls")
+                    if (calls.length() > 0) {
+                        val call = calls.getJSONObject(0)
+                        val teamMemberNumber = call.getString("team_member_number")
+                        val contactNumber = call.getString("contact_number")
                         
-                        if (calls.length() > 0) {
-                            val call = calls.getJSONObject(0)
-                            val teamMemberNumber = call.getString("team_member_number")
-                            val contactNumber = call.getString("contact_number")
-                            
-                            Log.i(TAG, "Initiating call: $teamMemberNumber -> $contactNumber")
-                            callManager.initiateConferenceCall(teamMemberNumber, contactNumber)
-                            
-                            // TODO: Mark call as completed in CRM
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Failed to parse response: ${e.message}")
+                        Log.i(TAG, "Initiating call: $teamMemberNumber -> $contactNumber")
+                        callManager.initiateConferenceCall(teamMemberNumber, contactNumber)
+                        
+                        // TODO: Mark call as completed in CRM
                     }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to parse response: ${e.message}")
                 }
             }
         })

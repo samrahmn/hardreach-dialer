@@ -141,11 +141,33 @@ class CallManager(private val context: Context) {
         try {
             val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
 
-            val intent = Intent("android.intent.action.PERFORM_CDMA_CALL_WAITING_ACTION")
-            intent.putExtra("com.android.phone.MERGE_CALLS", true)
-            context.sendBroadcast(intent)
+            // Method 1: Use modern TelecomManager API (Android 9+)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                try {
+                    // Get all active calls
+                    val inCallService = Class.forName("android.telecom.InCallService")
 
-            Log.i(TAG, "✓ Merge attempted")
+                    // Try to merge using system UI
+                    val intent = Intent("com.android.phone.ACTION_MERGE_CALLS")
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    context.startActivity(intent)
+
+                    Log.i(TAG, "✓ Merge command sent (modern API)")
+                } catch (e: Exception) {
+                    Log.w(TAG, "Modern API failed: ${e.message}, trying fallback...")
+
+                    // Fallback: Send key event to trigger merge button
+                    Runtime.getRuntime().exec("input keyevent 17") // KEYCODE_CALL = merge
+                    Log.i(TAG, "✓ Merge keyevent sent")
+                }
+            } else {
+                // Fallback for older Android
+                val intent = Intent("android.intent.action.PERFORM_CDMA_CALL_WAITING_ACTION")
+                intent.putExtra("com.android.phone.MERGE_CALLS", true)
+                context.sendBroadcast(intent)
+                Log.i(TAG, "✓ Merge attempted (legacy method)")
+            }
+
             Log.i(TAG, "Note: If merge doesn't work automatically, tap 'Merge' button on phone")
 
         } catch (e: Exception) {

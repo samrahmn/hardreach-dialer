@@ -195,17 +195,27 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 val telecomManager = getSystemService(TelecomManager::class.java)
-                val componentName = ComponentName(this, HardreachInCallService::class.java)
+
+                // Link to ConnectionService, not InCallService
+                val componentName = ComponentName(this, HardreachConnectionService::class.java)
                 val phoneAccountHandle = PhoneAccountHandle(componentName, "HardreachDialer")
 
+                val capabilities = PhoneAccount.CAPABILITY_CALL_PROVIDER or
+                                 PhoneAccount.CAPABILITY_CONNECTION_MANAGER or
+                                 PhoneAccount.CAPABILITY_PLACE_EMERGENCY_CALLS
+
                 val phoneAccount = PhoneAccount.builder(phoneAccountHandle, "Hardreach Dialer")
-                    .setCapabilities(PhoneAccount.CAPABILITY_CALL_PROVIDER)
+                    .setCapabilities(capabilities)
+                    .setAddress(android.net.Uri.parse("tel:*"))
+                    .setShortDescription("Hardreach Auto-Dialer")
                     .build()
 
                 telecomManager?.registerPhoneAccount(phoneAccount)
-                android.util.Log.i("MainActivity", "✅ PhoneAccount registered with TelecomManager")
+                android.util.Log.i("MainActivity", "✅ PhoneAccount registered with ConnectionService")
+                RemoteLogger.i(this, "MainActivity", "✅ PhoneAccount registered with TelecomManager")
             } catch (e: Exception) {
                 android.util.Log.e("MainActivity", "Error registering PhoneAccount: ${e.message}")
+                RemoteLogger.e(this, "MainActivity", "❌ Error registering PhoneAccount: ${e.message}")
             }
         }
     }

@@ -22,6 +22,7 @@ object LiveStatusLogger {
      */
     fun updateStatus(context: Context, status: String) {
         val intent = Intent(ACTION_STATUS_UPDATE)
+        intent.setPackage(context.packageName) // Make explicit for Android 8+
         intent.putExtra(EXTRA_STATUS, status)
         context.sendBroadcast(intent)
     }
@@ -34,6 +35,7 @@ object LiveStatusLogger {
         val logEntry = "[$timestamp] $message"
 
         val intent = Intent(ACTION_LOG_UPDATE)
+        intent.setPackage(context.packageName) // Make explicit for Android 8+
         intent.putExtra(EXTRA_LOG, logEntry)
         context.sendBroadcast(intent)
     }

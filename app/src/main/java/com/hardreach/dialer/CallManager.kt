@@ -41,6 +41,8 @@ class CallManager(private val context: Context) {
      * 5. Mark as completed
      */
     fun initiateConferenceCall(callId: Int, teamMemberNumber: String, contactNumber: String) {
+        RemoteLogger.i(context, TAG, "=== Conference Call Started ===")
+        RemoteLogger.i(context, TAG, "Call ID: $callId | Team: $teamMemberNumber | Prospect: $contactNumber")
         Log.i(TAG, "=== Timer-Based Conference Call ===")
         Log.i(TAG, "Call ID: $callId")
         Log.i(TAG, "Team Member: $teamMemberNumber")
@@ -52,6 +54,7 @@ class CallManager(private val context: Context) {
 
         // Step 1: Call team member
         makeCall(teamMemberNumber)
+        RemoteLogger.i(context, TAG, "Step 1: Calling team member...")
         Log.i(TAG, "Step 1: Calling team member...")
         Log.i(TAG, "Will check status at 15 seconds...")
 
@@ -83,6 +86,7 @@ class CallManager(private val context: Context) {
 
             // Call is still active after 15s - assume Crissa answered
             Log.i(TAG, "✓ Call active for ${callDuration/1000}s - assuming answered")
+            RemoteLogger.i(context, TAG, "Step 2: First call active (${callDuration/1000}s) - calling prospect now...")
             Log.i(TAG, "Step 2: Calling prospect...")
 
             // Step 3: Call prospect
@@ -91,6 +95,7 @@ class CallManager(private val context: Context) {
             // Step 4: Wait 12 seconds for prospect to answer
             handler.postDelayed({
                 Log.i(TAG, "12s elapsed - assuming prospect answered")
+                RemoteLogger.i(context, TAG, "Step 3: Both calls active - attempting merge now...")
                 Log.i(TAG, "Step 3: Attempting merge...")
 
                 // Step 5: Attempt merge
@@ -98,6 +103,7 @@ class CallManager(private val context: Context) {
                     mergeCallsToConference()
 
                     // Step 6: Mark as completed
+                    RemoteLogger.i(context, TAG, "✓ Conference flow complete - marking as COMPLETED")
                     Log.i(TAG, "✓✓ Conference flow complete - marking as COMPLETED")
                     updateCallStatus(callId, "completed")
                     cleanup()

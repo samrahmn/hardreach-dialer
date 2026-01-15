@@ -1,5 +1,6 @@
 package com.hardreach.dialer
 
+import android.content.Context
 import android.os.Build
 import android.telecom.Call
 import android.telecom.InCallService
@@ -18,6 +19,7 @@ class HardreachInCallService : InCallService() {
         super.onCallAdded(call)
         activeCalls.add(call)
         Log.i(TAG, "✓ Call added - Total active calls: ${activeCalls.size}")
+        RemoteLogger.i(applicationContext, TAG, "✓ Call added - Total active calls: ${activeCalls.size}")
 
         call.registerCallback(object : Call.Callback() {
             override fun onStateChanged(call: Call, state: Int) {
@@ -28,6 +30,7 @@ class HardreachInCallService : InCallService() {
         // Try to merge if we have 2 active calls
         if (activeCalls.size == 2) {
             Log.i(TAG, "✓ 2 calls detected - checking if both answered...")
+            RemoteLogger.i(applicationContext, TAG, "✓ 2 calls detected - checking if both answered...")
             checkAndMergeCalls()
         }
     }
@@ -56,6 +59,7 @@ class HardreachInCallService : InCallService() {
             val activeCount = activeCalls.count { it.state == Call.STATE_ACTIVE }
             if (activeCount == 2) {
                 Log.i(TAG, "✓✓ BOTH CALLS ACTIVE - MERGING NOW!")
+                RemoteLogger.i(applicationContext, TAG, "✓✓ BOTH CALLS ACTIVE - MERGING NOW!")
                 mergeCalls()
             }
         }
@@ -89,6 +93,7 @@ class HardreachInCallService : InCallService() {
                     // Method 1: Use conference() method
                     call1.conference(call2)
                     Log.i(TAG, "✅ CONFERENCE CREATED using call.conference()")
+                    RemoteLogger.i(applicationContext, TAG, "✅ CONFERENCE CREATED using call.conference()")
 
                     // Alternative: Create parent call and add children
                     // This might work better on some devices
@@ -96,8 +101,11 @@ class HardreachInCallService : InCallService() {
                         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                             if (call1.parent == null) {
                                 Log.w(TAG, "Conference not created yet, trying alternative method...")
+                                RemoteLogger.w(applicationContext, TAG, "Conference not created yet, trying alternative method...")
                                 // Some devices need explicit conference request
                                 call1.conference(call2)
+                            } else {
+                                RemoteLogger.i(applicationContext, TAG, "✅ Conference parent created successfully")
                             }
                         }, 1000)
                     }
@@ -105,6 +113,7 @@ class HardreachInCallService : InCallService() {
             }
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to merge calls: ${e.message}")
+            RemoteLogger.e(applicationContext, TAG, "❌ Failed to merge calls: ${e.message}")
             e.printStackTrace()
         }
     }

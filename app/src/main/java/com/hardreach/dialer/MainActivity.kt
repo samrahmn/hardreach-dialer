@@ -28,10 +28,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var serviceSwitch: Switch
     private lateinit var saveButton: Button
     private lateinit var testPollButton: Button
+    private lateinit var requestDefaultDialerButton: Button
     private lateinit var statusText: TextView
     private lateinit var logText: TextView
-    
+
     private val PERMISSIONS_REQUEST_CODE = 100
+    private val DEFAULT_DIALER_REQUEST_CODE = 200
 
     private fun cleanApiKey(key: String): String {
         return key.replace("\\s".toRegex(), "")
@@ -59,11 +61,13 @@ class MainActivity : AppCompatActivity() {
         serviceSwitch = findViewById(R.id.service_switch)
         saveButton = findViewById(R.id.save_button)
         testPollButton = findViewById(R.id.test_poll_button)
+        requestDefaultDialerButton = findViewById(R.id.request_default_dialer_button)
         statusText = findViewById(R.id.status_text)
         logText = findViewById(R.id.log_text)
-        
+
         saveButton.setOnClickListener { saveSettings() }
         testPollButton.setOnClickListener { testPoll() }
+        requestDefaultDialerButton.setOnClickListener { requestDefaultDialer() }
         serviceSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) startWebhookService() else stopWebhookService()
         }
@@ -188,6 +192,48 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 android.util.Log.e("MainActivity", "Error requesting dialer role: ${e.message}")
             }
+        }
+    }
+
+    private fun requestDefaultDialer() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val telecomManager = getSystemService(TelecomManager::class.java)
+            val isDefaultDialer = packageName == telecomManager?.defaultDialerPackage
+
+            logText.text = "Current default dialer: ${telecomManager?.defaultDialerPackage}\n" +
+                          "Is Hardreach default: $isDefaultDialer"
+
+            RemoteLogger.i(this, "MainActivity", "Current default dialer: ${telecomManager?.defaultDialerPackage}")
+            RemoteLogger.i(this, "MainActivity", "Is Hardreach default: $isDefaultDialer")
+
+            if (!isDefaultDialer) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    // Android 10+ - use RoleManager
+                    try {
+                        val roleManager = getSystemService(android.app.role.RoleManager::class.java)
+                        if (roleManager != null && roleManager.isRoleAvailable(android.app.role.RoleManager.ROLE_DIALER)) {
+                            val intent = roleManager.createRequestRoleIntent(android.app.role.RoleManager.ROLE_DIALER)
+                            startActivityForResult(intent, DEFAULT_DIALER_REQUEST_CODE)
+                            Toast.makeText(this, "Please select Hardreach Dialer", Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(this, "RoleManager not available on this device", Toast.LENGTH_LONG).show()
+                            RemoteLogger.w(this, "MainActivity", "⚠️ RoleManager not available on this Honor device")
+                        }
+                    } catch (e: Exception) {
+                        Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                        RemoteLogger.e(this, "MainActivity", "❌ Error requesting default dialer: ${e.message}")
+                    }
+                } else {
+                    // Android 6-9 - use TelecomManager intent
+                    val intent = Intent(TelecomManager.ACTION_CHANGE_DEFAULT_DIALER)
+                    intent.putExtra(TelecomManager.EXTRA_CHANGE_DEFAULT_DIALER_PACKAGE_NAME, packageName)
+                    startActivityForResult(intent, DEFAULT_DIALER_REQUEST_CODE)
+                }
+            } else {
+                Toast.makeText(this, "Hardreach is already the default dialer!", Toast.LENGTH_LONG).show()
+            }
+        } else {
+            Toast.makeText(this, "Requires Android 6.0 or higher", Toast.LENGTH_SHORT).show()
         }
     }
 

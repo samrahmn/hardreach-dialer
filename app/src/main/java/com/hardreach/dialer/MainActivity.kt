@@ -207,27 +207,18 @@ class MainActivity : AppCompatActivity() {
             RemoteLogger.i(this, "MainActivity", "Is Hardreach default: $isDefaultDialer")
 
             if (!isDefaultDialer) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    // Android 10+ - use RoleManager
-                    try {
-                        val roleManager = getSystemService(android.app.role.RoleManager::class.java)
-                        if (roleManager != null && roleManager.isRoleAvailable(android.app.role.RoleManager.ROLE_DIALER)) {
-                            val intent = roleManager.createRequestRoleIntent(android.app.role.RoleManager.ROLE_DIALER)
-                            startActivityForResult(intent, DEFAULT_DIALER_REQUEST_CODE)
-                            Toast.makeText(this, "Please select Hardreach Dialer", Toast.LENGTH_LONG).show()
-                        } else {
-                            Toast.makeText(this, "RoleManager not available on this device", Toast.LENGTH_LONG).show()
-                            RemoteLogger.w(this, "MainActivity", "⚠️ RoleManager not available on this Honor device")
-                        }
-                    } catch (e: Exception) {
-                        Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-                        RemoteLogger.e(this, "MainActivity", "❌ Error requesting default dialer: ${e.message}")
-                    }
-                } else {
-                    // Android 6-9 - use TelecomManager intent
+                // Try BOTH methods - TelecomManager (older but might work on Honor) AND RoleManager
+                try {
+                    // Method 1: TelecomManager intent (works on all Android 6+)
                     val intent = Intent(TelecomManager.ACTION_CHANGE_DEFAULT_DIALER)
                     intent.putExtra(TelecomManager.EXTRA_CHANGE_DEFAULT_DIALER_PACKAGE_NAME, packageName)
                     startActivityForResult(intent, DEFAULT_DIALER_REQUEST_CODE)
+
+                    RemoteLogger.i(this, "MainActivity", "✓ Launched TelecomManager.ACTION_CHANGE_DEFAULT_DIALER intent")
+                    Toast.makeText(this, "Please select Hardreach Dialer from the list", Toast.LENGTH_LONG).show()
+                } catch (e: Exception) {
+                    Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                    RemoteLogger.e(this, "MainActivity", "❌ Error requesting default dialer: ${e.message}")
                 }
             } else {
                 Toast.makeText(this, "Hardreach is already the default dialer!", Toast.LENGTH_LONG).show()

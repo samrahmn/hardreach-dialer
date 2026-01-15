@@ -88,7 +88,11 @@ class MainActivity : AppCompatActivity() {
             addAction(LiveStatusLogger.ACTION_STATUS_UPDATE)
             addAction(LiveStatusLogger.ACTION_LOG_UPDATE)
         }
-        registerReceiver(statusReceiver, filter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(statusReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(statusReceiver, filter)
+        }
     }
 
     private fun unregisterStatusReceiver() {

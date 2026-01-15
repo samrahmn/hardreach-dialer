@@ -23,22 +23,48 @@
         <activity
             android:name=".DialerActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.Light">
-            <intent-filter>
+            android:theme="@style/Theme.AppCompat.Light"
+            android:label="Hardreach Dialer">
+            <!-- DIAL intent - for dialer UI -->
+            <intent-filter android:priority="1">
                 <action android:name="android.intent.action.DIAL" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-            <intent-filter>
+            <intent-filter android:priority="1">
                 <action android:name="android.intent.action.DIAL" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="tel" />
             </intent-filter>
-            <intent-filter>
+            <intent-filter android:priority="1">
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.DIAL" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="tel" />
+            </intent-filter>
+            <!-- CALL intent - for actual calling -->
+            <intent-filter android:priority="1">
+                <action android:name="android.intent.action.CALL" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="tel" />
+            </intent-filter>
+            <!-- CALL_PRIVILEGED for system calls -->
+            <intent-filter android:priority="1">
+                <action android:name="android.intent.action.CALL_PRIVILEGED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="tel" />
+            </intent-filter>
+            <!-- CALL_EMERGENCY for emergency calls -->
+            <intent-filter android:priority="1">
+                <action android:name="android.intent.action.CALL_EMERGENCY" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="tel" />
+            </intent-filter>
+            <!-- Voicemail intent -->
+            <intent-filter android:priority="1">
+                <action android:name="android.intent.action.CALL_PRIVILEGED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="voicemail" />
             </intent-filter>
         </activity>
 

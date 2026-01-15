@@ -18,6 +18,7 @@ class CallMergeAccessibilityService : AccessibilityService() {
     private val handler = Handler(Looper.getMainLooper())
     private var mergeAttempted = false
     private var callsActive = 0
+    private var isTryingToMerge = false
 
     companion object {
         var isConnected = false
@@ -48,6 +49,7 @@ class CallMergeAccessibilityService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null) return
+        if (mergeAttempted) return // Already merged successfully
 
         // Log ALL events to debug
         val packageName = event.packageName?.toString() ?: "unknown"
@@ -70,10 +72,18 @@ class CallMergeAccessibilityService : AccessibilityService() {
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED ||
             event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
 
-            handler.removeCallbacksAndMessages(null)
-            handler.postDelayed({
-                tryMergeCalls()
-            }, 2000) // Wait 2s for UI to stabilize
+            // Don't cancel if we're already trying to merge
+            if (!isTryingToMerge) {
+                handler.removeCallbacksAndMessages(null)
+                handler.postDelayed({
+                    isTryingToMerge = true
+                    tryMergeCalls()
+                    // Reset after attempt
+                    handler.postDelayed({
+                        isTryingToMerge = false
+                    }, 5000)
+                }, 3000) // Wait 3s for UI to stabilize
+            }
         }
     }
 
@@ -237,6 +247,8 @@ class CallMergeAccessibilityService : AccessibilityService() {
     override fun onDestroy() {
         super.onDestroy()
         isConnected = false
+        mergeAttempted = false
+        isTryingToMerge = false
         handler.removeCallbacksAndMessages(null)
         Log.i(TAG, "Service destroyed")
         RemoteLogger.i(applicationContext, TAG, "Accessibility Service destroyed")

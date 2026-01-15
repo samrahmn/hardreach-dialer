@@ -95,6 +95,9 @@ class HardreachInCallService : InCallService() {
                     Log.i(TAG, "✅ CONFERENCE CREATED using call.conference()")
                     RemoteLogger.i(applicationContext, TAG, "✅ CONFERENCE CREATED using call.conference()")
 
+                    // Auto-mute microphone so dialer's voice is not heard
+                    autoMuteMicrophone()
+
                     // Alternative: Create parent call and add children
                     // This might work better on some devices
                     if (call1.parent == null && call2.parent == null) {
@@ -107,6 +110,8 @@ class HardreachInCallService : InCallService() {
                             } else {
                                 RemoteLogger.i(applicationContext, TAG, "✅ Conference parent created successfully")
                             }
+                            // Auto-mute again to ensure it's applied
+                            autoMuteMicrophone()
                         }, 1000)
                     }
                 }
@@ -115,6 +120,18 @@ class HardreachInCallService : InCallService() {
             Log.e(TAG, "❌ Failed to merge calls: ${e.message}")
             RemoteLogger.e(applicationContext, TAG, "❌ Failed to merge calls: ${e.message}")
             e.printStackTrace()
+        }
+    }
+
+    private fun autoMuteMicrophone() {
+        try {
+            // Mute the microphone so dialer's voice is not heard by other participants
+            setMuted(true)
+            Log.i(TAG, "🔇 MICROPHONE AUTO-MUTED - your voice will not be heard")
+            RemoteLogger.i(applicationContext, TAG, "🔇 MICROPHONE AUTO-MUTED - you are silent, team member and prospect can only hear each other")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to mute microphone: ${e.message}")
+            RemoteLogger.e(applicationContext, TAG, "❌ Failed to mute microphone: ${e.message}")
         }
     }
 

@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
         initializeViews()
         loadSettings()
         requestPermissions()
-        registerPhoneAccount()
+        // registerPhoneAccount() - NOT NEEDED! InCallService binds automatically as default dialer
         updateUI()
     }
     

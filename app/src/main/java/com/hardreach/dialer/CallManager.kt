@@ -125,49 +125,21 @@ class CallManager(private val context: Context) {
     }
 
     /**
-     * Make outgoing call using SIM (bypassing our ConnectionService)
+     * Make outgoing call - system will use SIM automatically
+     * InCallService will receive events because we're the default dialer
      */
     private fun makeCall(phoneNumber: String) {
         try {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                // Use TelecomManager to explicitly use SIM PhoneAccount
-                val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-
-                // Get the SIM PhoneAccount (not ours!)
-                val phoneAccountHandle = telecomManager.getCallCapablePhoneAccounts().firstOrNull { account ->
-                    !account.componentName.className.contains("Hardreach")
-                }
-
-                if (phoneAccountHandle != null) {
-                    // Use SIM PhoneAccount to make the call
-                    val extras = android.os.Bundle().apply {
-                        putParcelable(TelecomManager.EXTRA_PHONE_ACCOUNT_HANDLE, phoneAccountHandle)
-                    }
-
-                    telecomManager.placeCall(Uri.parse("tel:$phoneNumber"), extras)
-                    Log.i(TAG, "→ Call initiated to $phoneNumber using SIM PhoneAccount")
-                    RemoteLogger.i(context, TAG, "→ Call initiated to $phoneNumber via SIM")
-                } else {
-                    // Fallback to Intent
-                    val intent = Intent(Intent.ACTION_CALL).apply {
-                        data = Uri.parse("tel:$phoneNumber")
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        // Try to force SIM usage
-                        putExtra("com.android.phone.force.slot", 0)
-                    }
-                    context.startActivity(intent)
-                    Log.i(TAG, "→ Call initiated to $phoneNumber (fallback intent)")
-                    RemoteLogger.i(context, TAG, "→ Call via fallback intent to $phoneNumber")
-                }
-            } else {
-                // Pre-M: use simple intent
-                val intent = Intent(Intent.ACTION_CALL).apply {
-                    data = Uri.parse("tel:$phoneNumber")
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                }
-                context.startActivity(intent)
-                Log.i(TAG, "→ Call initiated to $phoneNumber")
+            // Simple approach: use Intent.ACTION_CALL
+            // System's TelephonyConnectionService handles the actual call
+            // Our InCallService receives events automatically as default dialer
+            val intent = Intent(Intent.ACTION_CALL).apply {
+                data = Uri.parse("tel:$phoneNumber")
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
+            context.startActivity(intent)
+            Log.i(TAG, "→ Call initiated to $phoneNumber")
+            RemoteLogger.i(context, TAG, "→ Call initiated to $phoneNumber (InCallService will receive events)")
         } catch (e: Exception) {
             Log.e(TAG, "✗ Failed to make call: ${e.message}")
             RemoteLogger.e(context, TAG, "✗ Failed to make call: ${e.message}")

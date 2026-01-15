@@ -1,10 +1,14 @@
 package com.hardreach.dialer
 
 import android.Manifest
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.telecom.PhoneAccount
+import android.telecom.PhoneAccountHandle
+import android.telecom.TelecomManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Switch
@@ -36,10 +40,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        
+
         initializeViews()
         loadSettings()
         requestPermissions()
+        registerPhoneAccount()
         updateUI()
     }
     
@@ -185,7 +190,26 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    
+
+    private fun registerPhoneAccount() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+                val telecomManager = getSystemService(TelecomManager::class.java)
+                val componentName = ComponentName(this, HardreachInCallService::class.java)
+                val phoneAccountHandle = PhoneAccountHandle(componentName, "HardreachDialer")
+
+                val phoneAccount = PhoneAccount.builder(phoneAccountHandle, "Hardreach Dialer")
+                    .setCapabilities(PhoneAccount.CAPABILITY_CALL_PROVIDER)
+                    .build()
+
+                telecomManager?.registerPhoneAccount(phoneAccount)
+                android.util.Log.i("MainActivity", "✅ PhoneAccount registered with TelecomManager")
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "Error registering PhoneAccount: ${e.message}")
+            }
+        }
+    }
+
     private fun hasRequiredPermissions(): Boolean {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED &&
                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED

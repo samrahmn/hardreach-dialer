@@ -16,6 +16,14 @@ class DialerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Handle DIAL intent - extract phone number if provided
+        val phoneNumber = when (intent?.action) {
+            Intent.ACTION_DIAL, Intent.ACTION_CALL, Intent.ACTION_VIEW -> {
+                intent.data?.schemeSpecificPart ?: ""
+            }
+            else -> ""
+        }
+
         // Simple layout - just show that this is for auto-dialing
         val layout = android.widget.LinearLayout(this).apply {
             orientation = android.widget.LinearLayout.VERTICAL
@@ -30,9 +38,15 @@ class DialerActivity : AppCompatActivity() {
         }
 
         val message = TextView(this).apply {
-            text = "This app is for automatic conference calls from your CRM.\n\n" +
-                   "To make regular calls, use your phone's contacts app.\n\n" +
-                   "Auto-merge is now enabled with built-in APIs!"
+            text = if (phoneNumber.isNotEmpty()) {
+                "Number: $phoneNumber\n\n" +
+                "This app is for automatic conference calls from your CRM.\n\n" +
+                "Use your phone's contacts app for regular calls."
+            } else {
+                "This app is for automatic conference calls from your CRM.\n\n" +
+                "To make regular calls, use your phone's contacts app.\n\n" +
+                "Auto-merge is now enabled with built-in APIs!"
+            }
             textSize = 16f
             setPadding(0, 0, 0, 32)
         }

@@ -148,7 +148,7 @@ class WebhookService : Service() {
                 val contactNumber = call.getString("contact_number")
 
                 Log.i(TAG, "Initiating call ID $callId: $teamMemberNumber -> $contactNumber")
-                LiveStatusLogger.log(applicationContext, "Found pending call #$callId - initiating conference")
+                StatusManager.log("Found pending call #$callId - initiating conference")
                 callManager.initiateConferenceCall(callId, teamMemberNumber, contactNumber)
             }
         } catch (e: Exception) {

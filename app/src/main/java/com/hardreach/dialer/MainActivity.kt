@@ -1,11 +1,9 @@
 package com.hardreach.dialer
 
 import android.Manifest
-import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -20,6 +18,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import okhttp3.*
 import java.io.IOException
 import kotlin.concurrent.thread
@@ -39,24 +39,6 @@ class MainActivity : AppCompatActivity() {
     private val PERMISSIONS_REQUEST_CODE = 100
     private val DEFAULT_DIALER_REQUEST_CODE = 200
 
-    private val logLines = mutableListOf<String>()
-    private val MAX_LOG_LINES = 50
-
-    private val statusReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            when (intent?.action) {
-                LiveStatusLogger.ACTION_STATUS_UPDATE -> {
-                    val status = intent.getStringExtra(LiveStatusLogger.EXTRA_STATUS)
-                    status?.let { updateLiveStatus(it) }
-                }
-                LiveStatusLogger.ACTION_LOG_UPDATE -> {
-                    val log = intent.getStringExtra(LiveStatusLogger.EXTRA_LOG)
-                    log?.let { addLogLine(it) }
-                }
-            }
-        }
-    }
-
     private fun cleanApiKey(key: String): String {
         return key.replace("\\s".toRegex(), "")
     }
@@ -68,54 +50,32 @@ class MainActivity : AppCompatActivity() {
         initializeViews()
         loadSettings()
         requestPermissions()
-        // registerPhoneAccount() - NOT NEEDED! InCallService binds automatically as default dialer
         updateUI()
+        observeStatusUpdates()
     }
-    
+
     override fun onResume() {
         super.onResume()
         updateUI()
-        registerStatusReceiver()
     }
 
-    override fun onPause() {
-        super.onPause()
-        unregisterStatusReceiver()
-    }
-
-    private fun registerStatusReceiver() {
-        val filter = IntentFilter().apply {
-            addAction(LiveStatusLogger.ACTION_STATUS_UPDATE)
-            addAction(LiveStatusLogger.ACTION_LOG_UPDATE)
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(statusReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(statusReceiver, filter)
-        }
-    }
-
-    private fun unregisterStatusReceiver() {
-        try {
-            unregisterReceiver(statusReceiver)
-        } catch (e: Exception) {
-            // Receiver not registered, ignore
-        }
-    }
-
-    private fun updateLiveStatus(status: String) {
-        runOnUiThread {
-            liveStatusText.text = status
-        }
-    }
-
-    private fun addLogLine(log: String) {
-        runOnUiThread {
-            logLines.add(0, log) // Add to beginning
-            if (logLines.size > MAX_LOG_LINES) {
-                logLines.removeAt(logLines.size - 1) // Remove oldest
+    /**
+     * Observe StateFlow updates from StatusManager
+     * Lifecycle-aware - automatically stops when Activity is destroyed
+     */
+    private fun observeStatusUpdates() {
+        // Collect status updates
+        lifecycleScope.launch {
+            StatusManager.currentStatus.collect { status ->
+                liveStatusText.text = status
             }
-            logText.text = logLines.joinToString("\n")
+        }
+
+        // Collect log entries
+        lifecycleScope.launch {
+            StatusManager.logEntries.collect { logs ->
+                logText.text = logs.joinToString("\n")
+            }
         }
     }
     

@@ -20,7 +20,7 @@ class HardreachInCallService : InCallService() {
         activeCalls.add(call)
         Log.i(TAG, "✓ Call added - Total active calls: ${activeCalls.size}")
         RemoteLogger.i(applicationContext, TAG, "✓ Call added - Total active calls: ${activeCalls.size}")
-        LiveStatusLogger.log(applicationContext, "Call detected - Total calls: ${activeCalls.size}")
+        StatusManager.log("Call detected - Total calls: ${activeCalls.size}")
 
         call.registerCallback(object : Call.Callback() {
             override fun onStateChanged(call: Call, state: Int) {
@@ -32,7 +32,7 @@ class HardreachInCallService : InCallService() {
         if (activeCalls.size == 2) {
             Log.i(TAG, "✓ 2 calls detected - checking if both answered...")
             RemoteLogger.i(applicationContext, TAG, "✓ 2 calls detected - checking if both answered...")
-            LiveStatusLogger.log(applicationContext, "2 calls detected - will merge when both answered")
+            StatusManager.log("2 calls detected - will merge when both answered")
             checkAndMergeCalls()
         }
     }
@@ -131,7 +131,7 @@ class HardreachInCallService : InCallService() {
             setMuted(true)
             Log.i(TAG, "🔇 MICROPHONE AUTO-MUTED - your voice will not be heard")
             RemoteLogger.i(applicationContext, TAG, "🔇 MICROPHONE AUTO-MUTED - you are silent, team member and prospect can only hear each other")
-            LiveStatusLogger.conferenceCreated(applicationContext)
+            StatusManager.conferenceCreated()
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to mute microphone: ${e.message}")
             RemoteLogger.e(applicationContext, TAG, "❌ Failed to mute microphone: ${e.message}")

@@ -1,8 +1,11 @@
 package com.hardreach.dialer
 
 import android.Manifest
+import android.content.BroadcastReceiver
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -22,7 +25,7 @@ import java.io.IOException
 import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
-    
+
     private lateinit var serverUrlInput: EditText
     private lateinit var apiKeyInput: EditText
     private lateinit var serviceSwitch: Switch
@@ -30,10 +33,29 @@ class MainActivity : AppCompatActivity() {
     private lateinit var testPollButton: Button
     private lateinit var requestDefaultDialerButton: Button
     private lateinit var statusText: TextView
+    private lateinit var liveStatusText: TextView
     private lateinit var logText: TextView
 
     private val PERMISSIONS_REQUEST_CODE = 100
     private val DEFAULT_DIALER_REQUEST_CODE = 200
+
+    private val logLines = mutableListOf<String>()
+    private val MAX_LOG_LINES = 50
+
+    private val statusReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                LiveStatusLogger.ACTION_STATUS_UPDATE -> {
+                    val status = intent.getStringExtra(LiveStatusLogger.EXTRA_STATUS)
+                    status?.let { updateLiveStatus(it) }
+                }
+                LiveStatusLogger.ACTION_LOG_UPDATE -> {
+                    val log = intent.getStringExtra(LiveStatusLogger.EXTRA_LOG)
+                    log?.let { addLogLine(it) }
+                }
+            }
+        }
+    }
 
     private fun cleanApiKey(key: String): String {
         return key.replace("\\s".toRegex(), "")
@@ -53,6 +75,44 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateUI()
+        registerStatusReceiver()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterStatusReceiver()
+    }
+
+    private fun registerStatusReceiver() {
+        val filter = IntentFilter().apply {
+            addAction(LiveStatusLogger.ACTION_STATUS_UPDATE)
+            addAction(LiveStatusLogger.ACTION_LOG_UPDATE)
+        }
+        registerReceiver(statusReceiver, filter)
+    }
+
+    private fun unregisterStatusReceiver() {
+        try {
+            unregisterReceiver(statusReceiver)
+        } catch (e: Exception) {
+            // Receiver not registered, ignore
+        }
+    }
+
+    private fun updateLiveStatus(status: String) {
+        runOnUiThread {
+            liveStatusText.text = status
+        }
+    }
+
+    private fun addLogLine(log: String) {
+        runOnUiThread {
+            logLines.add(0, log) // Add to beginning
+            if (logLines.size > MAX_LOG_LINES) {
+                logLines.removeAt(logLines.size - 1) // Remove oldest
+            }
+            logText.text = logLines.joinToString("\n")
+        }
     }
     
     private fun initializeViews() {
@@ -63,6 +123,7 @@ class MainActivity : AppCompatActivity() {
         testPollButton = findViewById(R.id.test_poll_button)
         requestDefaultDialerButton = findViewById(R.id.request_default_dialer_button)
         statusText = findViewById(R.id.status_text)
+        liveStatusText = findViewById(R.id.live_status_text)
         logText = findViewById(R.id.log_text)
 
         saveButton.setOnClickListener { saveSettings() }
@@ -71,6 +132,10 @@ class MainActivity : AppCompatActivity() {
         serviceSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) startWebhookService() else stopWebhookService()
         }
+
+        // Initialize with default status
+        liveStatusText.text = "Waiting for calls..."
+        logText.text = "Logs will appear here as calls are made..."
     }
     
     private fun testPoll() {

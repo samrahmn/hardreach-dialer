@@ -88,12 +88,49 @@
         android:backgroundTint="#4CAF50" />
 
     <TextView
-        android:id="@+id/log_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Logs will appear here..."
-        android:textSize="12sp"
+        android:text="Live Call Status"
+        android:textSize="16sp"
+        android:textStyle="bold"
         android:layout_marginTop="24dp"
-        android:fontFamily="monospace"
-        android:textColor="#666" />
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/live_status_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Waiting for calls..."
+        android:textSize="14sp"
+        android:padding="12dp"
+        android:background="#E3F2FD"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="#1976D2"
+        android:minHeight="60dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Activity Logs"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#F5F5F5"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/log_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Logs will appear here..."
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:textColor="#424242" />
+    </ScrollView>
 </LinearLayout>

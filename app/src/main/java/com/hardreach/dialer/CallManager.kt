@@ -53,10 +53,12 @@ class CallManager(private val context: Context) {
         callStartTime = System.currentTimeMillis()
 
         // Step 1: Call team member
+        LiveStatusLogger.callStarted(context, teamMemberNumber)
         makeCall(teamMemberNumber)
         RemoteLogger.i(context, TAG, "Step 1: Calling team member...")
         Log.i(TAG, "Step 1: Calling team member...")
         Log.i(TAG, "Will check status at 15 seconds...")
+        LiveStatusLogger.waitingForAnswer(context, 15)
 
         // Step 2: Check at 15 seconds
         handler.postDelayed({
@@ -70,6 +72,7 @@ class CallManager(private val context: Context) {
                 // Call ended already (failed/rejected/no balance)
                 Log.w(TAG, "✗ Call ended before 15s (duration: ${callDuration/1000}s)")
                 Log.w(TAG, "Marking as FAILED - likely rejected or no balance")
+                LiveStatusLogger.callFailed(context, "First call ended early")
                 updateCallStatus(callId, "failed")
                 cleanup()
                 return@postDelayed
@@ -79,6 +82,7 @@ class CallManager(private val context: Context) {
                 // Call too short, likely failed
                 Log.w(TAG, "✗ Call duration too short: ${callDuration/1000}s")
                 Log.w(TAG, "Marking as FAILED")
+                LiveStatusLogger.callFailed(context, "Call duration too short")
                 updateCallStatus(callId, "failed")
                 cleanup()
                 return@postDelayed
@@ -88,24 +92,30 @@ class CallManager(private val context: Context) {
             Log.i(TAG, "✓ Call active for ${callDuration/1000}s - assuming answered")
             RemoteLogger.i(context, TAG, "Step 2: First call active (${callDuration/1000}s) - calling prospect now...")
             Log.i(TAG, "Step 2: Calling prospect...")
+            LiveStatusLogger.callConnected(context, teamMemberNumber)
 
             // Step 3: Call prospect
+            LiveStatusLogger.callStarted(context, contactNumber)
             makeCall(contactNumber)
+            LiveStatusLogger.waitingForAnswer(context, 12)
 
             // Step 4: Wait 12 seconds for prospect to answer
             handler.postDelayed({
                 Log.i(TAG, "12s elapsed - assuming prospect answered")
                 RemoteLogger.i(context, TAG, "Step 3: Both calls active - attempting merge now...")
                 Log.i(TAG, "Step 3: Attempting merge...")
+                LiveStatusLogger.callConnected(context, contactNumber)
 
                 // Step 5: Attempt merge
                 handler.postDelayed({
+                    LiveStatusLogger.mergingCalls(context)
                     mergeCallsToConference()
 
                     // Step 6: Mark as completed
                     RemoteLogger.i(context, TAG, "✓ Conference flow complete - marking as COMPLETED")
                     Log.i(TAG, "✓✓ Conference flow complete - marking as COMPLETED")
                     updateCallStatus(callId, "completed")
+                    LiveStatusLogger.log(context, "Conference call completed - marked as COMPLETED in database")
                     cleanup()
 
                 }, MERGE_DELAY)
@@ -118,6 +128,7 @@ class CallManager(private val context: Context) {
         handler.postDelayed({
             Log.w(TAG, "Overall timeout (2 min) - cleaning up")
             if (currentCallId != null) {
+                LiveStatusLogger.callFailed(context, "Timeout after 2 minutes")
                 updateCallStatus(callId, "failed")
             }
             cleanup()
@@ -237,6 +248,7 @@ class CallManager(private val context: Context) {
     private fun cleanup() {
         handler.removeCallbacksAndMessages(null)
         currentCallId = null
+        LiveStatusLogger.idle(context)
         Log.d(TAG, "Cleanup complete")
     }
 

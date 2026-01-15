@@ -153,16 +153,36 @@ class MainActivity : AppCompatActivity() {
         val permissions = arrayOf(
             Manifest.permission.CALL_PHONE,
             Manifest.permission.READ_PHONE_STATE,
+            Manifest.permission.READ_CALL_LOG,
             Manifest.permission.ANSWER_PHONE_CALLS,
             Manifest.permission.POST_NOTIFICATIONS
         )
-        
+
         val missing = permissions.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
-        
+
         if (missing.isNotEmpty()) {
             ActivityCompat.requestPermissions(this, missing.toTypedArray(), PERMISSIONS_REQUEST_CODE)
+        }
+
+        // Also request dialer role for Android 10+
+        requestDialerRole()
+    }
+
+    private fun requestDialerRole() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                val roleManager = getSystemService(android.app.role.RoleManager::class.java)
+                if (roleManager != null && roleManager.isRoleAvailable(android.app.role.RoleManager.ROLE_DIALER)) {
+                    if (!roleManager.isRoleHeld(android.app.role.RoleManager.ROLE_DIALER)) {
+                        val intent = roleManager.createRequestRoleIntent(android.app.role.RoleManager.ROLE_DIALER)
+                        startActivityForResult(intent, 999)
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "Error requesting dialer role: ${e.message}")
+            }
         }
     }
     

@@ -90,12 +90,43 @@ class CallMergeAccessibilityService : AccessibilityService() {
             Log.i(TAG, "✓ Can access window - searching for merge button...")
             RemoteLogger.i(applicationContext, TAG, "🔍 Searching for merge button in window...")
 
+            // FIRST: Look for and tap "More" button to reveal merge option
+            val moreButton = findNodesByText(rootNode, "more", ignoreCase = true).firstOrNull()
+            if (moreButton != null && moreButton.isClickable) {
+                Log.i(TAG, "Found 'More' button - tapping to reveal menu...")
+                RemoteLogger.i(applicationContext, TAG, "📱 Tapping 'More' button to reveal merge option...")
+
+                val clicked = moreButton.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                if (clicked) {
+                    Log.i(TAG, "✓ More button tapped - waiting for menu to open...")
+                    RemoteLogger.i(applicationContext, TAG, "✓ More menu opened - searching for merge...")
+
+                    // Wait for menu to open, then try again
+                    handler.postDelayed({
+                        tryFindAndClickMerge()
+                    }, 1000)
+                    return
+                }
+            }
+
+            // If no "More" button, try to find merge directly
+            tryFindAndClickMerge()
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error trying to merge calls: ${e.message}")
+            RemoteLogger.e(applicationContext, TAG, "❌ Error auto-merging: ${e.message}")
+        }
+    }
+
+    private fun tryFindAndClickMerge() {
+        try {
+            val rootNode = rootInActiveWindow ?: return
+
             // Look for "Merge" button with various possible texts
             val mergeTexts = listOf(
                 "merge",
                 "merge calls",
                 "conference",
-                "add call",
                 "دمج", // Arabic
                 "合并"  // Chinese
             )

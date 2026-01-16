@@ -243,7 +243,13 @@ class MainActivity : AppCompatActivity() {
     
     private fun updateUI() {
         val isRunning = WebhookService.isRunning
-        statusText.text = if (isRunning) "Status: Running ✅" else "Status: Stopped ⭕"
+        if (isRunning) {
+            statusText.text = "Status: Active ✅"
+            statusText.setTextColor(getColor(R.color.status_active))
+        } else {
+            statusText.text = "Status: Stopped"
+            statusText.setTextColor(getColor(R.color.text_secondary))
+        }
     }
     
     private fun requestPermissions() {

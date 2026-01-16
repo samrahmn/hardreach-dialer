@@ -18,10 +18,10 @@
         android:id="@+id/test_poll_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="TEST POLL NOW"
-        android:textStyle="bold"
-        android:layout_marginBottom="24dp"
-        android:backgroundTint="#FF5722" />
+        android:text="Test API Connection"
+        android:textSize="14sp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="@color/text_secondary" />
 
     <TextView
         android:layout_width="match_parent"
@@ -48,8 +48,9 @@
         android:id="@+id/api_key"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Your API key"
-        android:inputType="textPassword" />
+        android:hint="Enter your API key"
+        android:inputType="textPassword"
+        android:fontFamily="monospace" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -58,12 +59,26 @@
         android:layout_marginTop="24dp"
         android:gravity="center_vertical">
 
-        <TextView
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Enable Service"
-            android:textSize="16sp" />
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CRM Auto-Dialer"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Poll for calls every 15 seconds"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary" />
+        </LinearLayout>
 
         <Switch
             android:id="@+id/service_switch"
@@ -75,8 +90,11 @@
         android:id="@+id/save_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Save Settings"
-        android:layout_marginTop="24dp" />
+        android:text="SAVE SETTINGS"
+        android:textStyle="bold"
+        android:backgroundTint="@color/primary"
+        android:textColor="@color/text_white"
+        android:layout_marginTop="16dp" />
 
     <Button
         android:id="@+id/request_default_dialer_button"

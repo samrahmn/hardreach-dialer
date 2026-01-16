@@ -22,22 +22,26 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="Enter phone number"
-            android:textSize="32sp"
+            android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_hint"
             android:background="@null"
             android:inputType="phone"
             android:gravity="center"
-            android:maxLines="1" />
+            android:maxLines="1"
+            android:ellipsize="end" />
 
         <ImageButton
             android:id="@+id/btn_backspace"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_input_delete"
-            android:contentDescription="Backspace"
-            android:tint="@color/text_secondary" />
+            android:contentDescription="Delete"
+            android:tint="@color/text_primary"
+            android:scaleType="centerInside"
+            android:padding="12dp" />
     </LinearLayout>
 
     <!-- Dialpad Grid -->
@@ -63,7 +67,7 @@
             android:text="1"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
+            android:background="@drawable/dialpad_button_background" />
 
         <Button
             android:id="@+id/btn_2"
@@ -74,7 +78,7 @@
             android:text="2\nABC"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
+            android:background="@drawable/dialpad_button_background" />
 
         <Button
             android:id="@+id/btn_3"
@@ -85,7 +89,7 @@
             android:text="3\nDEF"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
+            android:background="@drawable/dialpad_button_background" />
 
         <!-- Row 2: 4, 5, 6 -->
         <Button
@@ -97,7 +101,7 @@
             android:text="4\nGHI"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
+            android:background="@drawable/dialpad_button_background" />
 
         <Button
             android:id="@+id/btn_5"
@@ -108,7 +112,7 @@
             android:text="5\nJKL"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
+            android:background="@drawable/dialpad_button_background" />
 
         <Button
             android:id="@+id/btn_6"
@@ -119,7 +123,7 @@
             android:text="6\nMNO"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
+            android:background="@drawable/dialpad_button_background" />
 
         <!-- Row 3: 7, 8, 9 -->
         <Button
@@ -131,7 +135,7 @@
             android:text="7\nPQRS"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
+            android:background="@drawable/dialpad_button_background" />
 
         <Button
             android:id="@+id/btn_8"
@@ -142,7 +146,7 @@
             android:text="8\nTUV"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
+            android:background="@drawable/dialpad_button_background" />
 
         <Button
             android:id="@+id/btn_9"
@@ -153,7 +157,7 @@
             android:text="9\nWXYZ"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
+            android:background="@drawable/dialpad_button_background" />
 
         <!-- Row 4: *, 0, # -->
         <Button
@@ -165,7 +169,7 @@
             android:text="*"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
+            android:background="@drawable/dialpad_button_background" />
 
         <Button
             android:id="@+id/btn_0"
@@ -176,7 +180,7 @@
             android:text="0\n+"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
+            android:background="@drawable/dialpad_button_background" />
 
         <Button
             android:id="@+id/btn_hash"
@@ -187,7 +191,7 @@
             android:text="#"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
+            android:background="@drawable/dialpad_button_background" />
     </GridLayout>
 
     <!-- Call Button -->

@@ -26,9 +26,9 @@ class InCallActivity : AppCompatActivity() {
     private lateinit var btnSpeaker: FloatingActionButton
     private lateinit var btnDialpad: FloatingActionButton
     private lateinit var btnHold: FloatingActionButton
-    private lateinit var btnAddCall: FloatingActionButton
     private lateinit var btnEndCall: FloatingActionButton
     private lateinit var btnRecord: FloatingActionButton
+    private lateinit var btnMerge: FloatingActionButton
 
     private lateinit var labelMute: TextView
     private lateinit var labelSpeaker: TextView
@@ -36,6 +36,9 @@ class InCallActivity : AppCompatActivity() {
     private lateinit var labelRecord: TextView
 
     private lateinit var dialpadOverlay: LinearLayout
+    private lateinit var activeCallsContainer: LinearLayout
+    private lateinit var activeCallsList: LinearLayout
+    private lateinit var btnMergeContainer: LinearLayout
 
     private var isMuted = false
     private var isSpeakerOn = false
@@ -80,47 +83,19 @@ class InCallActivity : AppCompatActivity() {
         btnSpeaker = findViewById(R.id.btn_speaker)
         btnDialpad = findViewById(R.id.btn_dialpad)
         btnHold = findViewById(R.id.btn_hold)
-        btnAddCall = findViewById(R.id.btn_add_call)
         btnEndCall = findViewById(R.id.btn_end_call)
+        btnRecord = findViewById(R.id.btn_record)
+        btnMerge = findViewById(R.id.btn_merge)
 
         labelMute = findViewById(R.id.label_mute)
         labelSpeaker = findViewById(R.id.label_speaker)
         labelHold = findViewById(R.id.label_hold)
+        labelRecord = findViewById(R.id.label_record)
 
         dialpadOverlay = findViewById(R.id.in_call_dialpad_overlay)
-
-        // Add record button dynamically
-        val recordContainer = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            gravity = android.view.Gravity.CENTER
-        }
-
-        btnRecord = FloatingActionButton(this).apply {
-            id = View.generateViewId()
-            setImageResource(android.R.drawable.ic_btn_speak_now)
-            backgroundTintList = android.content.res.ColorStateList.valueOf(0xFF424242.toInt())
-            imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt())
-        }
-
-        labelRecord = TextView(this).apply {
-            text = "Record"
-            setTextColor(0xFFFFFFFF.toInt())
-            textSize = 12f
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = 8
-            }
-        }
-
-        recordContainer.addView(btnRecord)
-        recordContainer.addView(labelRecord)
-
-        // Add to first row of buttons
-        val firstRow = findViewById<LinearLayout>(R.id.btn_mute_container).parent as LinearLayout
-        firstRow.addView(recordContainer, 0)
+        activeCallsContainer = findViewById(R.id.active_calls_container)
+        activeCallsList = findViewById(R.id.active_calls_list)
+        btnMergeContainer = findViewById(R.id.btn_merge_container)
     }
 
     private fun setupButtons() {
@@ -128,9 +103,9 @@ class InCallActivity : AppCompatActivity() {
         btnSpeaker.setOnClickListener { toggleSpeaker() }
         btnDialpad.setOnClickListener { showDialpad() }
         btnHold.setOnClickListener { toggleHold() }
-        btnAddCall.setOnClickListener { addCall() }
         btnEndCall.setOnClickListener { endCall() }
         btnRecord.setOnClickListener { toggleRecording() }
+        btnMerge.setOnClickListener { manualMerge() }
 
         findViewById<Button>(R.id.btn_close_dialpad).setOnClickListener {
             dialpadOverlay.visibility = View.GONE
@@ -138,6 +113,9 @@ class InCallActivity : AppCompatActivity() {
 
         // Setup in-call dialpad buttons
         setupInCallDialpad()
+
+        // Monitor calls for conference state
+        monitorActiveCalls()
     }
 
     private fun setupInCallDialpad() {
@@ -213,8 +191,115 @@ class InCallActivity : AppCompatActivity() {
         Toast.makeText(this, if (isOnHold) "Call on hold" else "Call resumed", Toast.LENGTH_SHORT).show()
     }
 
-    private fun addCall() {
-        Toast.makeText(this, "Add call - Coming soon", Toast.LENGTH_SHORT).show()
+    private fun monitorActiveCalls() {
+        handler.post(object : Runnable {
+            override fun run() {
+                val telecomManager = getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        val callsInProgress = telecomManager.getCallsInProgress()
+                        if (callsInProgress != null && callsInProgress.isNotEmpty()) {
+                            updateCallsList(callsInProgress)
+
+                            // Show merge button if we have 2+ calls not yet in conference
+                            if (callsInProgress.size >= 2) {
+                                btnMergeContainer.visibility = View.VISIBLE
+                            } else {
+                                btnMergeContainer.visibility = View.GONE
+                            }
+                        } else {
+                            activeCallsContainer.visibility = View.GONE
+                            btnMergeContainer.visibility = View.GONE
+                        }
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("InCallActivity", "Error monitoring calls: ${e.message}")
+                }
+
+                handler.postDelayed(this, 1000) // Check every second
+            }
+        })
+    }
+
+    private fun updateCallsList(calls: List<*>) {
+        activeCallsList.removeAllViews()
+
+        if (calls.size > 1) {
+            activeCallsContainer.visibility = View.VISIBLE
+
+            calls.forEach { call ->
+                val callItem = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        setMargins(0, 0, 0, 16)
+                    }
+                    setPadding(16, 12, 16, 12)
+                    setBackgroundColor(0xFF333333.toInt())
+                }
+
+                val callInfo = TextView(this).apply {
+                    text = "Call" // Will show number if available
+                    textColor = 0xFFFFFFFF.toInt()
+                    textSize = 14f
+                    layoutParams = LinearLayout.LayoutParams(
+                        0,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        1f
+                    )
+                }
+
+                val btnDisconnect = Button(this).apply {
+                    text = "Disconnect"
+                    setBackgroundColor(0xFFF44336.toInt())
+                    setTextColor(0xFFFFFFFF.toInt())
+                    textSize = 12f
+                    setPadding(16, 8, 16, 8)
+                    setOnClickListener {
+                        disconnectCall(call)
+                    }
+                }
+
+                callItem.addView(callInfo)
+                callItem.addView(btnDisconnect)
+                activeCallsList.addView(callItem)
+            }
+        } else {
+            activeCallsContainer.visibility = View.GONE
+        }
+    }
+
+    private fun manualMerge() {
+        val telecomManager = getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val calls = telecomManager.getCallsInProgress()
+                if (calls != null && calls.size >= 2) {
+                    Toast.makeText(this, "Merging calls...", Toast.LENGTH_SHORT).show()
+                    // The actual merge happens in CallMergeAccessibilityService
+                    // This button is a fallback for manual control
+                } else {
+                    Toast.makeText(this, "Need 2+ calls to merge", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Merge failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            android.util.Log.e("InCallActivity", "Error merging: ${e.message}")
+        }
+    }
+
+    private fun disconnectCall(call: Any) {
+        try {
+            // Disconnect individual call using reflection
+            val disconnectMethod = call.javaClass.getMethod("disconnect")
+            disconnectMethod.invoke(call)
+            Toast.makeText(this, "Call disconnected", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Failed to disconnect: ${e.message}", Toast.LENGTH_SHORT).show()
+            android.util.Log.e("InCallActivity", "Error disconnecting call: ${e.message}")
+        }
     }
 
     private fun sendDtmf(digit: String) {

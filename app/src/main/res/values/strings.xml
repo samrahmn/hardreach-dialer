@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Hardreach Dialer</string>
-    <string name="accessibility_service_description">Hardreach Auto-Merge: Automatically taps the Merge button during conference calls to combine calls without manual intervention.</string>
+    <string name="app_name">HDial</string>
+    <string name="accessibility_service_description">HDial Auto-Merge: Automatically taps the Merge button during conference calls to combine calls without manual intervention.</string>
 </resources>

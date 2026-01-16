@@ -5,12 +5,34 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     <group
-        android:scaleX="0.5"
-        android:scaleY="0.5"
-        android:translateX="27"
-        android:translateY="27">
+        android:scaleX="1.2"
+        android:scaleY="1.2"
+        android:translateX="54"
+        android:translateY="54">
+
+        <!-- Stylized "H" with phone receiver -->
+
+        <!-- Left vertical bar of H -->
         <path
             android:fillColor="#FFFFFF"
-            android:pathData="M20.01,15.38c-1.23,0 -2.42,-0.2 -3.53,-0.56 -0.35,-0.12 -0.74,-0.03 -1.01,0.24l-1.57,1.97c-2.83,-1.35 -5.48,-3.9 -6.89,-6.83l1.95,-1.66c0.27,-0.28 0.35,-0.67 0.24,-1.02 -0.37,-1.11 -0.56,-2.3 -0.56,-3.53 0,-0.54 -0.45,-0.99 -0.99,-0.99H4.19C3.65,3 3,3.24 3,3.99 3,13.28 10.73,21 20.01,21c0.71,0 0.99,-0.63 0.99,-1.18v-3.45c0,-0.54 -0.45,-0.99 -0.99,-0.99z" />
+            android:pathData="M-20,-25 L-12,-25 L-12,25 L-20,25 Z" />
+
+        <!-- Right vertical bar of H -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M12,-25 L20,-25 L20,25 L12,25 Z" />
+
+        <!-- Horizontal bar of H (phone receiver shape) -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M-20,-3 L-20,3 L-8,3 Q-6,3 -6,5 L-6,8 Q-6,10 -4,10 L4,10 Q6,10 6,8 L6,5 Q6,3 8,3 L20,3 L20,-3 L8,-3 Q6,-3 6,-5 L6,-8 Q6,-10 4,-10 L-4,-10 Q-6,-10 -6,-8 L-6,-5 Q-6,-3 -8,-3 Z" />
+
+        <!-- Phone receiver ends (curved) -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M-8,3 Q-10,3 -10,5 L-10,8 Q-10,12 -6,12 L-4,12 Q-2,12 -2,10 L-2,3 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M8,3 L8,10 Q8,12 10,12 L12,12 Q14,12 14,10 L14,8 L14,5 Q14,3 12,3 Z" />
     </group>
 </vector>

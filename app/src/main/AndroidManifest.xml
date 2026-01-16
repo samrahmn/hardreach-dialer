@@ -25,14 +25,19 @@
         android:allowBackup="true"
         android:label="Hardreach Dialer"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat.Light">
+        android:theme="@style/AppTheme">
 
-        <!-- Dialer activity - shown when app is set as default dialer -->
+        <!-- Dialer activity - main launcher and default dialer -->
         <activity
             android:name=".DialerActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.Light"
+            android:theme="@style/AppTheme.NoActionBar"
             android:label="Hardreach Dialer">
+            <!-- App launcher -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
             <!-- DIAL intent - for dialer UI -->
             <intent-filter android:priority="1">
                 <action android:name="android.intent.action.DIAL" />
@@ -76,20 +81,19 @@
             </intent-filter>
         </activity>
 
+        <!-- Settings activity - accessible from dialer settings button -->
         <activity
             android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:exported="false"
+            android:theme="@style/AppTheme"
+            android:label="Settings" />
+
 
         <!-- In-Call UI Activity -->
         <activity
             android:name=".InCallActivity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:theme="@style/AppTheme.InCall"
             android:launchMode="singleTop"
             android:showOnLockScreen="true"
             android:turnScreenOn="true"

@@ -1,27 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#FFFFFF">
+    android:background="@color/background">
 
     <!-- Top Bar -->
     <LinearLayout
+        android:id="@+id/top_bar"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:orientation="horizontal"
-        android:background="#1976D2"
+        android:background="@color/primary"
         android:gravity="center_vertical"
         android:paddingLeft="16dp"
-        android:paddingRight="16dp">
+        android:paddingRight="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Hardreach Dialer"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/text_white"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -31,242 +34,31 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_preferences"
-            android:tint="#FFFFFF"
+            android:tint="@color/text_white"
             android:contentDescription="Settings" />
-
-        <ImageButton
-            android:id="@+id/btn_recent_calls"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_recent_history"
-            android:tint="#FFFFFF"
-            android:contentDescription="Recent Calls"
-            android:layout_marginLeft="8dp" />
     </LinearLayout>
 
-    <!-- Phone Number Display -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="24dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:gravity="center_vertical">
-
-        <EditText
-            android:id="@+id/phone_number_display"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="Enter phone number"
-            android:textSize="32sp"
-            android:textStyle="bold"
-            android:textColor="#212121"
-            android:background="@null"
-            android:inputType="phone"
-            android:gravity="center"
-            android:maxLines="1" />
-
-        <ImageButton
-            android:id="@+id/btn_backspace"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_input_delete"
-            android:contentDescription="Backspace"
-            android:tint="#757575" />
-    </LinearLayout>
-
-    <!-- Dialpad Grid -->
-    <GridLayout
-        android:layout_width="match_parent"
+    <!-- Fragment Container -->
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragment_container"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:columnCount="3"
-        android:rowCount="4"
-        android:alignmentMode="alignBounds"
-        android:useDefaultMargins="true">
+        app:layout_constraintTop_toBottomOf="@id/top_bar"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Row 1: 1, 2, 3 -->
-        <Button
-            android:id="@+id/btn_1"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
-            android:text="1"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
-
-        <Button
-            android:id="@+id/btn_2"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
-            android:text="2\nABC"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
-
-        <Button
-            android:id="@+id/btn_3"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
-            android:text="3\nDEF"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
-
-        <!-- Row 2: 4, 5, 6 -->
-        <Button
-            android:id="@+id/btn_4"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
-            android:text="4\nGHI"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
-
-        <Button
-            android:id="@+id/btn_5"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
-            android:text="5\nJKL"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
-
-        <Button
-            android:id="@+id/btn_6"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
-            android:text="6\nMNO"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
-
-        <!-- Row 3: 7, 8, 9 -->
-        <Button
-            android:id="@+id/btn_7"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
-            android:text="7\nPQRS"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
-
-        <Button
-            android:id="@+id/btn_8"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
-            android:text="8\nTUV"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
-
-        <Button
-            android:id="@+id/btn_9"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
-            android:text="9\nWXYZ"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
-
-        <!-- Row 4: *, 0, # -->
-        <Button
-            android:id="@+id/btn_star"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
-            android:text="*"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
-
-        <Button
-            android:id="@+id/btn_0"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
-            android:text="0\n+"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
-
-        <Button
-            android:id="@+id/btn_hash"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
-            android:text="#"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:background="?attr/selectableItemBackground" />
-    </GridLayout>
-
-    <!-- Call Actions -->
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:padding="24dp">
+        android:background="@color/background"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconTint="@color/primary"
+        app:itemTextColor="@color/text_primary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <ImageButton
-            android:id="@+id/btn_contacts"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_my_calendar"
-            android:tint="#757575"
-            android:contentDescription="Contacts"
-            android:layout_marginRight="32dp" />
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/btn_call"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_menu_call"
-            android:backgroundTint="#4CAF50"
-            android:tint="#FFFFFF"
-            android:contentDescription="Call"
-            app:fabSize="normal" />
-
-        <ImageButton
-            android:id="@+id/btn_video_call"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_camera"
-            android:tint="#757575"
-            android:contentDescription="Video Call"
-            android:layout_marginLeft="32dp"
-            android:visibility="gone" />
-    </LinearLayout>
-
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -129,6 +129,7 @@ class MainActivity : AppCompatActivity() {
         testPollButton = findViewById(R.id.test_poll_button)
         requestDefaultDialerButton = findViewById(R.id.request_default_dialer_button)
         batteryOptimizationButton = findViewById(R.id.battery_optimization_button)
+        accessibilityServiceButton = findViewById(R.id.accessibility_service_button)
         statusText = findViewById(R.id.status_text)
         liveStatusText = findViewById(R.id.live_status_text)
         logText = findViewById(R.id.log_text)

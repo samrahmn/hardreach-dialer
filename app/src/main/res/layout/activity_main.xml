@@ -119,26 +119,26 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="200dp"
         android:background="#F5F5F5"
         android:padding="8dp"
-        android:fillViewport="true">
+        android:scrollbars="vertical">
 
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fillViewport="true">
+            android:scrollbars="horizontal">
 
             <TextView
                 android:id="@+id/log_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Logs will appear here..."
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:fontFamily="monospace"
                 android:textColor="#424242"
-                android:padding="4dp" />
+                android:padding="8dp"
+                android:lineSpacingExtra="2dp" />
         </HorizontalScrollView>
     </ScrollView>
 </LinearLayout>

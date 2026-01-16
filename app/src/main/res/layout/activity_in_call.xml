@@ -5,14 +5,45 @@
     android:layout_height="match_parent"
     android:background="#212121">
 
+    <!-- Top Bar with Minimize Button -->
+    <LinearLayout
+        android:id="@+id/top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#1976D2"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:layout_alignParentTop="true">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Active Call"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btn_minimize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="View Logs"
+            android:textSize="12sp"
+            android:backgroundTint="#2196F3"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
     <!-- Call Info Section -->
     <ScrollView
         android:id="@+id/call_info_scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@+id/top_bar"
         android:layout_above="@+id/control_buttons_section"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp">
 
         <LinearLayout

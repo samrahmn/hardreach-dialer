@@ -1,6 +1,7 @@
 package com.hardreach.dialer
 
 import android.content.Context
+import android.content.Intent
 import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
@@ -39,6 +40,7 @@ class InCallActivity : AppCompatActivity() {
     private lateinit var activeCallsContainer: LinearLayout
     private lateinit var activeCallsList: LinearLayout
     private lateinit var btnMergeContainer: LinearLayout
+    private lateinit var btnMinimize: Button
 
     private var isMuted = false
     private var isSpeakerOn = false
@@ -96,6 +98,7 @@ class InCallActivity : AppCompatActivity() {
         activeCallsContainer = findViewById(R.id.active_calls_container)
         activeCallsList = findViewById(R.id.active_calls_list)
         btnMergeContainer = findViewById(R.id.btn_merge_container)
+        btnMinimize = findViewById(R.id.btn_minimize)
     }
 
     private fun setupButtons() {
@@ -106,6 +109,7 @@ class InCallActivity : AppCompatActivity() {
         btnEndCall.setOnClickListener { endCall() }
         btnRecord.setOnClickListener { toggleRecording() }
         btnMerge.setOnClickListener { manualMerge() }
+        btnMinimize.setOnClickListener { minimizeToLogs() }
 
         findViewById<Button>(R.id.btn_close_dialpad).setOnClickListener {
             dialpadOverlay.visibility = View.GONE
@@ -116,6 +120,14 @@ class InCallActivity : AppCompatActivity() {
 
         // Monitor calls for conference state
         monitorActiveCalls()
+    }
+
+    private fun minimizeToLogs() {
+        // Move to background and open MainActivity to view logs
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+        startActivity(intent)
+        moveTaskToBack(true)
     }
 
     private fun setupInCallDialpad() {

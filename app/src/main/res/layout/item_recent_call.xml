@@ -3,25 +3,27 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp"
-    app:cardBackgroundColor="@color/background">
+    android:layout_margin="6dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="1dp"
+    app:cardBackgroundColor="@color/surface">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="12dp"
+        android:padding="16dp"
+        android:minHeight="72dp"
         android:gravity="center_vertical">
 
-        <!-- Call Type Icon -->
+        <!-- Call Type Icon with circular background -->
         <TextView
             android:id="@+id/call_type_icon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:textSize="24sp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:textSize="20sp"
             android:gravity="center"
+            android:background="@drawable/call_type_background"
             android:text="📞" />
 
         <!-- Call Info -->
@@ -30,36 +32,42 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:layout_marginLeft="12dp">
+            android:layout_marginLeft="16dp">
 
             <TextView
                 android:id="@+id/contact_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Unknown"
-                android:textSize="16sp"
+                android:textSize="17sp"
                 android:textStyle="bold"
-                android:textColor="@color/text_primary" />
+                android:textColor="@color/text_primary"
+                android:maxLines="1"
+                android:ellipsize="end" />
 
             <TextView
                 android:id="@+id/call_details"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="+971 50 123 4567 • Jan 16, 10:30"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:textColor="@color/text_secondary"
-                android:layout_marginTop="2dp" />
+                android:layout_marginTop="4dp"
+                android:maxLines="1"
+                android:ellipsize="end" />
 
         </LinearLayout>
 
         <!-- Call Button -->
         <ImageButton
             android:id="@+id/btn_call"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_call"
-            android:tint="@color/accent"
+            android:tint="@color/primary"
+            android:padding="12dp"
+            android:scaleType="centerInside"
             android:contentDescription="Call" />
 
     </LinearLayout>

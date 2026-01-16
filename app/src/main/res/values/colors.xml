@@ -17,6 +17,7 @@
     <color name="background">#FFFFFF</color>
     <color name="surface">#F5F5F5</color>
     <color name="surface_dark">#212121</color>
+    <color name="button_inactive">#424242</color>
 
     <!-- Text Colors -->
     <color name="text_primary">#212121</color>

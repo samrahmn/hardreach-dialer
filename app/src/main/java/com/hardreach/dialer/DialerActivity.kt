@@ -9,7 +9,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 
 /**
  * Main dialer activity with bottom navigation
- * Uses fragments for Keypad, Recents, and Contacts
+ * Uses fragments for Keypad and Recents
  */
 class DialerActivity : AppCompatActivity() {
 
@@ -32,10 +32,6 @@ class DialerActivity : AppCompatActivity() {
                 }
                 R.id.nav_recents -> {
                     showFragment(RecentsFragment())
-                    true
-                }
-                R.id.nav_contacts -> {
-                    showFragment(ContactsFragment())
                     true
                 }
                 else -> false

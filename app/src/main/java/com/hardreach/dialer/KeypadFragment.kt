@@ -9,18 +9,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
+import android.widget.TextView
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class KeypadFragment : Fragment() {
 
-    private lateinit var phoneNumberDisplay: EditText
+    private lateinit var phoneNumberDisplay: TextView
     private lateinit var btnBackspace: ImageButton
-    private lateinit var btnCall: FloatingActionButton
+    private lateinit var btnCall: Button
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,7 +41,7 @@ class KeypadFragment : Fragment() {
 
         // Check for DIAL intent and pre-fill number
         activity?.intent?.data?.schemeSpecificPart?.let { number ->
-            phoneNumberDisplay.setText(number)
+            phoneNumberDisplay.text = number
         }
     }
 
@@ -64,7 +63,7 @@ class KeypadFragment : Fragment() {
 
         digits.forEach { (buttonId, digit) ->
             view.findViewById<Button>(buttonId).setOnClickListener {
-                phoneNumberDisplay.append(digit)
+                phoneNumberDisplay.text = phoneNumberDisplay.text.toString() + digit
             }
         }
     }
@@ -73,8 +72,7 @@ class KeypadFragment : Fragment() {
         btnBackspace.setOnClickListener {
             val text = phoneNumberDisplay.text.toString()
             if (text.isNotEmpty()) {
-                phoneNumberDisplay.setText(text.substring(0, text.length - 1))
-                phoneNumberDisplay.setSelection(phoneNumberDisplay.text.length)
+                phoneNumberDisplay.text = text.substring(0, text.length - 1)
             }
         }
 
@@ -103,7 +101,6 @@ class KeypadFragment : Fragment() {
     }
 
     fun setPhoneNumber(number: String) {
-        phoneNumberDisplay.setText(number)
-        phoneNumberDisplay.setSelection(phoneNumberDisplay.text.length)
+        phoneNumberDisplay.text = number
     }
 }

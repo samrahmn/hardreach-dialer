@@ -10,7 +10,6 @@ import android.provider.CallLog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -20,7 +19,7 @@ import androidx.recyclerview.widget.RecyclerView
 class RecentsFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
-    private lateinit var emptyView: TextView
+    private lateinit var emptyView: View
     private lateinit var adapter: RecentsAdapter
 
     override fun onCreateView(
@@ -54,7 +53,6 @@ class RecentsFragment : Fragment() {
                 Manifest.permission.READ_CALL_LOG
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            emptyView.text = "Call log permission required"
             emptyView.visibility = View.VISIBLE
             recyclerView.visibility = View.GONE
             return

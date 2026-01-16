@@ -3,18 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#212121">
+    android:background="@color/surface_dark">
 
     <!-- Top Bar with Minimize Button -->
     <LinearLayout
         android:id="@+id/top_bar"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="#1976D2"
+        android:layout_height="64dp"
+        android:background="@color/primary"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
         android:layout_alignParentTop="true">
 
         <TextView
@@ -22,8 +22,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Active Call"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp"
+            android:textColor="@color/text_white"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
         <Button
@@ -31,9 +31,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="View Logs"
-            android:textSize="12sp"
-            android:backgroundTint="#2196F3"
-            android:textColor="#FFFFFF" />
+            android:textSize="13sp"
+            android:backgroundTint="@color/primary_light"
+            android:textColor="@color/text_white" />
     </LinearLayout>
 
     <!-- Call Info Section -->
@@ -59,8 +59,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Unknown"
-                android:textColor="#FFFFFF"
-                android:textSize="28sp"
+                android:textColor="@color/text_white"
+                android:textSize="32sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -68,27 +68,27 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="+971 50 123 4567"
-                android:textColor="#B0B0B0"
-                android:textSize="16sp"
-                android:layout_marginTop="4dp" />
+                android:textColor="@color/text_secondary"
+                android:textSize="18sp"
+                android:layout_marginTop="8dp" />
 
             <TextView
                 android:id="@+id/call_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Calling..."
-                android:textColor="#4CAF50"
-                android:textSize="14sp"
-                android:layout_marginTop="12dp" />
+                android:textColor="@color/accent"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp" />
 
             <TextView
                 android:id="@+id/call_duration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="00:00"
-                android:textColor="#FFFFFF"
-                android:textSize="18sp"
-                android:layout_marginTop="4dp"
+                android:textColor="@color/text_white"
+                android:textSize="20sp"
+                android:layout_marginTop="8dp"
                 android:visibility="gone" />
 
             <!-- Active Calls List (for conference) -->
@@ -97,15 +97,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="40dp"
                 android:visibility="gone">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Active Calls"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
+                    android:textColor="@color/text_white"
+                    android:textSize="18sp"
                     android:textStyle="bold"
                     android:layout_marginBottom="16dp" />
 
@@ -151,8 +151,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@android:drawable/ic_lock_silent_mode_off"
-                    android:backgroundTint="#424242"
-                    android:tint="#FFFFFF"
+                    android:backgroundTint="@color/button_inactive"
+                    android:tint="@color/text_white"
                     app:fabSize="mini" />
 
                 <TextView
@@ -160,9 +160,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Mute"
-                    android:textColor="#FFFFFF"
-                    android:textSize="11sp"
-                    android:layout_marginTop="6dp" />
+                    android:textColor="@color/text_white"
+                    android:textSize="12sp"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -178,17 +178,17 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@android:drawable/ic_menu_sort_by_size"
-                    android:backgroundTint="#424242"
-                    android:tint="#FFFFFF"
+                    android:backgroundTint="@color/button_inactive"
+                    android:tint="@color/text_white"
                     app:fabSize="mini" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Dialpad"
-                    android:textColor="#FFFFFF"
-                    android:textSize="11sp"
-                    android:layout_marginTop="6dp" />
+                    android:textColor="@color/text_white"
+                    android:textSize="12sp"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -204,8 +204,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@android:drawable/ic_lock_silent_mode"
-                    android:backgroundTint="#424242"
-                    android:tint="#FFFFFF"
+                    android:backgroundTint="@color/button_inactive"
+                    android:tint="@color/text_white"
                     app:fabSize="mini" />
 
                 <TextView
@@ -213,9 +213,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Speaker"
-                    android:textColor="#FFFFFF"
-                    android:textSize="11sp"
-                    android:layout_marginTop="6dp" />
+                    android:textColor="@color/text_white"
+                    android:textSize="12sp"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
         </LinearLayout>
 
@@ -240,8 +240,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@android:drawable/ic_media_pause"
-                    android:backgroundTint="#424242"
-                    android:tint="#FFFFFF"
+                    android:backgroundTint="@color/button_inactive"
+                    android:tint="@color/text_white"
                     app:fabSize="mini" />
 
                 <TextView
@@ -249,9 +249,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Hold"
-                    android:textColor="#FFFFFF"
-                    android:textSize="11sp"
-                    android:layout_marginTop="6dp" />
+                    android:textColor="@color/text_white"
+                    android:textSize="12sp"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -267,8 +267,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@android:drawable/ic_btn_speak_now"
-                    android:backgroundTint="#424242"
-                    android:tint="#FFFFFF"
+                    android:backgroundTint="@color/button_inactive"
+                    android:tint="@color/text_white"
                     app:fabSize="mini" />
 
                 <TextView
@@ -276,9 +276,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Record"
-                    android:textColor="#FFFFFF"
-                    android:textSize="11sp"
-                    android:layout_marginTop="6dp" />
+                    android:textColor="@color/text_white"
+                    android:textSize="12sp"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -295,17 +295,17 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@android:drawable/ic_menu_add"
-                    android:backgroundTint="#FF9800"
-                    android:tint="#FFFFFF"
+                    android:backgroundTint="@color/warning"
+                    android:tint="@color/text_white"
                     app:fabSize="mini" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Merge"
-                    android:textColor="#FFFFFF"
-                    android:textSize="11sp"
-                    android:layout_marginTop="6dp" />
+                    android:textColor="@color/text_white"
+                    android:textSize="12sp"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
         </LinearLayout>
 
@@ -315,8 +315,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
-            android:backgroundTint="#F44336"
-            android:tint="#FFFFFF"
+            android:backgroundTint="@color/error"
+            android:tint="@color/text_white"
             app:fabSize="normal"
             app:elevation="6dp"
             android:layout_gravity="center" />
@@ -328,7 +328,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="#212121"
+        android:background="@color/surface_dark"
         android:visibility="gone"
         android:padding="16dp">
 
@@ -339,7 +339,7 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
-            android:tint="#FFFFFF"
+            android:tint="@color/text_white"
             android:layout_gravity="end" />
 
         <!-- Number Display -->
@@ -349,7 +349,7 @@
             android:layout_height="wrap_content"
             android:text=""
             android:textSize="32sp"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/text_white"
             android:gravity="center"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="32dp" />
@@ -373,7 +373,7 @@
                 android:layout_rowWeight="1"
                 android:text="1"
                 android:textSize="28sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_white"
                 android:textStyle="bold"
                 android:background="?attr/selectableItemBackground" />
 
@@ -385,7 +385,7 @@
                 android:layout_rowWeight="1"
                 android:text="2\nABC"
                 android:textSize="28sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_white"
                 android:textStyle="bold"
                 android:background="?attr/selectableItemBackground" />
 
@@ -397,7 +397,7 @@
                 android:layout_rowWeight="1"
                 android:text="3\nDEF"
                 android:textSize="28sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_white"
                 android:textStyle="bold"
                 android:background="?attr/selectableItemBackground" />
 
@@ -409,7 +409,7 @@
                 android:layout_rowWeight="1"
                 android:text="4\nGHI"
                 android:textSize="28sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_white"
                 android:textStyle="bold"
                 android:background="?attr/selectableItemBackground" />
 
@@ -421,7 +421,7 @@
                 android:layout_rowWeight="1"
                 android:text="5\nJKL"
                 android:textSize="28sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_white"
                 android:textStyle="bold"
                 android:background="?attr/selectableItemBackground" />
 
@@ -433,7 +433,7 @@
                 android:layout_rowWeight="1"
                 android:text="6\nMNO"
                 android:textSize="28sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_white"
                 android:textStyle="bold"
                 android:background="?attr/selectableItemBackground" />
 
@@ -445,7 +445,7 @@
                 android:layout_rowWeight="1"
                 android:text="7\nPQRS"
                 android:textSize="28sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_white"
                 android:textStyle="bold"
                 android:background="?attr/selectableItemBackground" />
 
@@ -457,7 +457,7 @@
                 android:layout_rowWeight="1"
                 android:text="8\nTUV"
                 android:textSize="28sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_white"
                 android:textStyle="bold"
                 android:background="?attr/selectableItemBackground" />
 
@@ -469,7 +469,7 @@
                 android:layout_rowWeight="1"
                 android:text="9\nWXYZ"
                 android:textSize="28sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_white"
                 android:textStyle="bold"
                 android:background="?attr/selectableItemBackground" />
 
@@ -481,7 +481,7 @@
                 android:layout_rowWeight="1"
                 android:text="*"
                 android:textSize="28sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_white"
                 android:textStyle="bold"
                 android:background="?attr/selectableItemBackground" />
 
@@ -493,7 +493,7 @@
                 android:layout_rowWeight="1"
                 android:text="0\n+"
                 android:textSize="28sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_white"
                 android:textStyle="bold"
                 android:background="?attr/selectableItemBackground" />
 
@@ -505,7 +505,7 @@
                 android:layout_rowWeight="1"
                 android:text="#"
                 android:textSize="28sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_white"
                 android:textStyle="bold"
                 android:background="?attr/selectableItemBackground" />
         </GridLayout>

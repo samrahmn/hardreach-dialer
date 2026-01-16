@@ -28,8 +28,9 @@ class HardreachInCallService : InCallService() {
             }
         })
 
-        // Launch InCallActivity when first call added
-        if (activeCalls.size == 1 && call.state == Call.STATE_ACTIVE) {
+        // Launch InCallActivity immediately when first call added (regardless of state)
+        if (activeCalls.size == 1) {
+            Log.i(TAG, "First call added - launching InCallActivity")
             launchInCallUI(call)
         }
 
@@ -60,11 +61,7 @@ class HardreachInCallService : InCallService() {
         }
 
         Log.i(TAG, "Call state changed: $stateString (Total calls: ${activeCalls.size})")
-
-        // Launch InCallActivity when first call becomes active
-        if (state == Call.STATE_ACTIVE && activeCalls.size == 1) {
-            launchInCallUI(call)
-        }
+        RemoteLogger.i(applicationContext, TAG, "Call state: $stateString (Total: ${activeCalls.size})")
 
         // When second call becomes active, merge immediately
         if (state == Call.STATE_ACTIVE && activeCalls.size == 2) {

@@ -36,7 +36,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var testPollButton: Button
     private lateinit var requestDefaultDialerButton: Button
     private lateinit var batteryOptimizationButton: Button
-    private lateinit var accessibilityServiceButton: Button
     private lateinit var statusText: TextView
     private lateinit var liveStatusText: TextView
     private lateinit var logText: TextView
@@ -64,7 +63,6 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         updateUI()
         updateBatteryOptimizationStatus()
-        updateAccessibilityServiceStatus()
 
         // Auto-restart service if it was enabled but isn't running
         val prefs = getSharedPreferences("hardreach_dialer", MODE_PRIVATE)
@@ -129,7 +127,6 @@ class MainActivity : AppCompatActivity() {
         testPollButton = findViewById(R.id.test_poll_button)
         requestDefaultDialerButton = findViewById(R.id.request_default_dialer_button)
         batteryOptimizationButton = findViewById(R.id.battery_optimization_button)
-        accessibilityServiceButton = findViewById(R.id.accessibility_service_button)
         statusText = findViewById(R.id.status_text)
         liveStatusText = findViewById(R.id.live_status_text)
         logText = findViewById(R.id.log_text)
@@ -138,7 +135,6 @@ class MainActivity : AppCompatActivity() {
         testPollButton.setOnClickListener { testPoll() }
         requestDefaultDialerButton.setOnClickListener { requestDefaultDialer() }
         batteryOptimizationButton.setOnClickListener { requestBatteryOptimization() }
-        accessibilityServiceButton.setOnClickListener { requestAccessibilityService() }
         serviceSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) startWebhookService() else stopWebhookService()
         }
@@ -149,7 +145,6 @@ class MainActivity : AppCompatActivity() {
 
         // Check and update button states
         updateBatteryOptimizationStatus()
-        updateAccessibilityServiceStatus()
     }
     
     private fun testPoll() {
@@ -356,62 +351,6 @@ class MainActivity : AppCompatActivity() {
                 android.content.res.ColorStateList.valueOf(0xFFFF9800.toInt())
             }
         }
-    }
-
-    private fun requestAccessibilityService() {
-        val isEnabled = isAccessibilityServiceEnabled()
-
-        if (isEnabled) {
-            Toast.makeText(this, "✅ Accessibility service already enabled", Toast.LENGTH_LONG).show()
-            logText.text = "Accessibility service: Enabled ✅\nAuto-merge will work!"
-        } else {
-            try {
-                val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                startActivity(intent)
-                Toast.makeText(this, "Enable 'Hardreach Dialer' accessibility service", Toast.LENGTH_LONG).show()
-                RemoteLogger.i(this, "MainActivity", "Opening accessibility settings")
-            } catch (e: Exception) {
-                Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-                RemoteLogger.e(this, "MainActivity", "❌ Failed to open accessibility settings: ${e.message}")
-            }
-        }
-    }
-
-    private fun updateAccessibilityServiceStatus() {
-        val isEnabled = isAccessibilityServiceEnabled()
-
-        accessibilityServiceButton.text = if (isEnabled) {
-            "ACCESSIBILITY: ENABLED ✅"
-        } else {
-            "ENABLE ACCESSIBILITY SERVICE"
-        }
-
-        accessibilityServiceButton.backgroundTintList = if (isEnabled) {
-            android.content.res.ColorStateList.valueOf(0xFF4CAF50.toInt())
-        } else {
-            android.content.res.ColorStateList.valueOf(0xFFFF9800.toInt())
-        }
-    }
-
-    private fun isAccessibilityServiceEnabled(): Boolean {
-        val expectedComponentName = ComponentName(this, CallMergeAccessibilityService::class.java)
-        val enabledServicesSetting = Settings.Secure.getString(
-            contentResolver,
-            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        ) ?: return false
-
-        val colonSplitter = android.text.TextUtils.SimpleStringSplitter(':')
-        colonSplitter.setString(enabledServicesSetting)
-
-        while (colonSplitter.hasNext()) {
-            val componentNameString = colonSplitter.next()
-            val enabledService = ComponentName.unflattenFromString(componentNameString)
-
-            if (enabledService != null && enabledService == expectedComponentName) {
-                return true
-            }
-        }
-        return false
     }
 
     private fun registerPhoneAccount() {

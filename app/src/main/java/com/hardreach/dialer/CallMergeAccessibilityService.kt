@@ -18,16 +18,9 @@ class CallMergeAccessibilityService : AccessibilityService() {
     private val handler = Handler(Looper.getMainLooper())
     private var mergeAttempted = false
     private var callsActive = 0
-    private var isTryingToMerge = false
-
-    companion object {
-        var isConnected = false
-    }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
-
-        isConnected = true
 
         val info = AccessibilityServiceInfo().apply {
             eventTypes = AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or
@@ -36,99 +29,35 @@ class CallMergeAccessibilityService : AccessibilityService() {
             flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
                    AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
             notificationTimeout = 100
-            // Listen to ALL packages to catch any dialer app
-            packageNames = null
+            packageNames = arrayOf(
+                "com.android.incallui",
+                "com.android.server.telecom",
+                "com.google.android.dialer",
+                "com.samsung.android.incallui",
+                "com.android.dialer"
+            )
         }
         serviceInfo = info
 
-        Log.i(TAG, "✅ Accessibility Service CONNECTED and ready")
-        Log.i(TAG, "Service will monitor ALL apps for merge button")
-        RemoteLogger.i(applicationContext, TAG, "✅ Accessibility Service CONNECTED - ready to auto-merge")
-        RemoteLogger.i(applicationContext, TAG, "Monitoring ALL apps for merge button")
+        Log.i(TAG, "Accessibility Service connected and ready")
+        RemoteLogger.i(applicationContext, TAG, "Accessibility Service connected - ready to auto-merge")
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null) return
-        if (mergeAttempted) return // Already merged successfully
 
-        // Log ALL events to debug
-        val packageName = event.packageName?.toString() ?: "unknown"
-        val eventType = when (event.eventType) {
-            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> "CONTENT_CHANGED"
-            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> "STATE_CHANGED"
-            else -> "OTHER(${event.eventType})"
-        }
-
-        Log.d(TAG, "Event received: $eventType from $packageName")
-
-        // Log if it's from a phone/dialer app
-        if (packageName.contains("phone") || packageName.contains("dialer") ||
-            packageName.contains("call") || packageName.contains("telecom")) {
-            Log.i(TAG, "📞 Phone app event: $eventType from $packageName")
-            RemoteLogger.i(applicationContext, TAG, "📞 Phone app detected: $packageName")
-        }
-
-        // Only process window changes
+        // Only process window changes during calls
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED ||
             event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
 
-            // Don't cancel if we're already trying to merge
-            if (!isTryingToMerge) {
-                handler.removeCallbacksAndMessages(null)
-                handler.postDelayed({
-                    isTryingToMerge = true
-                    tryMergeCalls()
-                    // Reset after attempt
-                    handler.postDelayed({
-                        isTryingToMerge = false
-                    }, 5000)
-                }, 3000) // Wait 3s for UI to stabilize
-            }
+            handler.removeCallbacksAndMessages(null)
+            handler.postDelayed({
+                tryMergeCalls()
+            }, 2000) // Wait 2s for UI to stabilize
         }
     }
 
     private fun tryMergeCalls() {
-        try {
-            val rootNode = rootInActiveWindow
-
-            if (rootNode == null) {
-                Log.w(TAG, "⚠️ Cannot access window - rootInActiveWindow is null")
-                RemoteLogger.w(applicationContext, TAG, "⚠️ Cannot access current window")
-                return
-            }
-
-            Log.i(TAG, "✓ Can access window - searching for merge button...")
-            RemoteLogger.i(applicationContext, TAG, "🔍 Searching for merge button in window...")
-
-            // FIRST: Look for and tap "More" button to reveal merge option
-            val moreButton = findNodesByText(rootNode, "more", ignoreCase = true).firstOrNull()
-            if (moreButton != null && moreButton.isClickable) {
-                Log.i(TAG, "Found 'More' button - tapping to reveal menu...")
-                RemoteLogger.i(applicationContext, TAG, "📱 Tapping 'More' button to reveal merge option...")
-
-                val clicked = moreButton.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                if (clicked) {
-                    Log.i(TAG, "✓ More button tapped - waiting for menu to open...")
-                    RemoteLogger.i(applicationContext, TAG, "✓ More menu opened - searching for merge...")
-
-                    // Wait for menu to open, then try again
-                    handler.postDelayed({
-                        tryFindAndClickMerge()
-                    }, 1000)
-                    return
-                }
-            }
-
-            // If no "More" button, try to find merge directly
-            tryFindAndClickMerge()
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Error trying to merge calls: ${e.message}")
-            RemoteLogger.e(applicationContext, TAG, "❌ Error auto-merging: ${e.message}")
-        }
-    }
-
-    private fun tryFindAndClickMerge() {
         try {
             val rootNode = rootInActiveWindow ?: return
 
@@ -137,6 +66,7 @@ class CallMergeAccessibilityService : AccessibilityService() {
                 "merge",
                 "merge calls",
                 "conference",
+                "add call",
                 "دمج", // Arabic
                 "合并"  // Chinese
             )
@@ -170,17 +100,12 @@ class CallMergeAccessibilityService : AccessibilityService() {
                     Log.i(TAG, "✅ Successfully clicked merge button")
                     RemoteLogger.i(applicationContext, TAG, "✅ Merge button clicked successfully!")
                     mergeAttempted = true
-                    return
                 }
             }
 
-            // If we got here, no merge button was found
-            Log.d(TAG, "No merge button found in current window")
-            RemoteLogger.w(applicationContext, TAG, "⚠️ No merge button found - may not be on call screen yet")
-
         } catch (e: Exception) {
             Log.e(TAG, "Error trying to merge calls: ${e.message}")
-            RemoteLogger.e(applicationContext, TAG, "❌ Error auto-merging: ${e.message}")
+            RemoteLogger.e(applicationContext, TAG, "Error auto-merging: ${e.message}")
         }
     }
 
@@ -240,17 +165,12 @@ class CallMergeAccessibilityService : AccessibilityService() {
     }
 
     override fun onInterrupt() {
-        Log.i(TAG, "⚠️ Service interrupted")
-        RemoteLogger.w(applicationContext, TAG, "⚠️ Accessibility Service interrupted")
+        Log.i(TAG, "Service interrupted")
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        isConnected = false
-        mergeAttempted = false
-        isTryingToMerge = false
         handler.removeCallbacksAndMessages(null)
         Log.i(TAG, "Service destroyed")
-        RemoteLogger.i(applicationContext, TAG, "Accessibility Service destroyed")
     }
 }

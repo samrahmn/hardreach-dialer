@@ -7,8 +7,8 @@ import android.telecom.InCallService
 import android.util.Log
 
 /**
- * InCallService to properly access and merge active calls
- * This has proper permissions to manage calls on Android 9+
+ * InCallService to detect active calls
+ * Accessibility service will handle merging by tapping UI button
  */
 class HardreachInCallService : InCallService() {
 
@@ -28,12 +28,11 @@ class HardreachInCallService : InCallService() {
             }
         })
 
-        // Try to merge if we have 2 active calls
+        // Notify when 2 calls detected - accessibility service will merge
         if (activeCalls.size == 2) {
-            Log.i(TAG, "✓ 2 calls detected - checking if both answered...")
-            RemoteLogger.i(applicationContext, TAG, "✓ 2 calls detected - checking if both answered...")
-            StatusManager.log("2 calls detected - will merge when both answered")
-            checkAndMergeCalls()
+            Log.i(TAG, "✓ 2 calls detected - accessibility service will auto-merge")
+            RemoteLogger.i(applicationContext, TAG, "✓ 2 calls detected - accessibility service will auto-merge")
+            StatusManager.log("2 calls detected - waiting for accessibility service to merge")
         }
     }
 
@@ -57,85 +56,14 @@ class HardreachInCallService : InCallService() {
         Log.i(TAG, "Call state changed: $stateString (Total calls: ${activeCalls.size})")
         RemoteLogger.i(applicationContext, TAG, "Call state: $stateString (Total: ${activeCalls.size})")
 
-        // When second call becomes active, merge immediately
+        // When both calls active, accessibility service will tap merge button
         if (state == Call.STATE_ACTIVE && activeCalls.size == 2) {
             val activeCount = activeCalls.count { it.state == Call.STATE_ACTIVE }
             if (activeCount == 2) {
-                Log.i(TAG, "✓✓ BOTH CALLS ACTIVE - MERGING NOW!")
-                RemoteLogger.i(applicationContext, TAG, "✓✓ BOTH CALLS ACTIVE - MERGING NOW!")
-                mergeCalls()
+                Log.i(TAG, "✓✓ BOTH CALLS ACTIVE - accessibility service should merge now")
+                RemoteLogger.i(applicationContext, TAG, "✓✓ BOTH CALLS ACTIVE - accessibility service will merge")
+                StatusManager.conferenceCreated()
             }
-        }
-    }
-
-    private fun checkAndMergeCalls() {
-        // Wait a moment for second call to become active
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            if (activeCalls.size >= 2) {
-                val activeCount = activeCalls.count { it.state == Call.STATE_ACTIVE }
-                Log.i(TAG, "Merge check: ${activeCount} calls are ACTIVE")
-
-                if (activeCount >= 2) {
-                    mergeCalls()
-                } else {
-                    Log.i(TAG, "Waiting for both calls to be active...")
-                    // Try again in 2 seconds
-                    checkAndMergeCalls()
-                }
-            }
-        }, 2000)
-    }
-
-    private fun mergeCalls() {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (activeCalls.size >= 2) {
-                    val call1 = activeCalls[0]
-                    val call2 = activeCalls[1]
-
-                    // Method 1: Use conference() method
-                    call1.conference(call2)
-                    Log.i(TAG, "✅ CONFERENCE CREATED using call.conference()")
-                    RemoteLogger.i(applicationContext, TAG, "✅ CONFERENCE CREATED using call.conference()")
-
-                    // Auto-mute microphone so dialer's voice is not heard
-                    autoMuteMicrophone()
-
-                    // Alternative: Create parent call and add children
-                    // This might work better on some devices
-                    if (call1.parent == null && call2.parent == null) {
-                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                            if (call1.parent == null) {
-                                Log.w(TAG, "Conference not created yet, trying alternative method...")
-                                RemoteLogger.w(applicationContext, TAG, "Conference not created yet, trying alternative method...")
-                                // Some devices need explicit conference request
-                                call1.conference(call2)
-                            } else {
-                                RemoteLogger.i(applicationContext, TAG, "✅ Conference parent created successfully")
-                            }
-                            // Auto-mute again to ensure it's applied
-                            autoMuteMicrophone()
-                        }, 1000)
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to merge calls: ${e.message}")
-            RemoteLogger.e(applicationContext, TAG, "❌ Failed to merge calls: ${e.message}")
-            e.printStackTrace()
-        }
-    }
-
-    private fun autoMuteMicrophone() {
-        try {
-            // Mute the microphone so dialer's voice is not heard by other participants
-            setMuted(true)
-            Log.i(TAG, "🔇 MICROPHONE AUTO-MUTED - your voice will not be heard")
-            RemoteLogger.i(applicationContext, TAG, "🔇 MICROPHONE AUTO-MUTED - you are silent, team member and prospect can only hear each other")
-            StatusManager.conferenceCreated()
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to mute microphone: ${e.message}")
-            RemoteLogger.e(applicationContext, TAG, "❌ Failed to mute microphone: ${e.message}")
         }
     }
 

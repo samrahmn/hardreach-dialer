@@ -28,6 +28,11 @@ class HardreachInCallService : InCallService() {
             }
         })
 
+        // Launch InCallActivity when first call added
+        if (activeCalls.size == 1 && call.state == Call.STATE_ACTIVE) {
+            launchInCallUI(call)
+        }
+
         // Try to merge if we have 2 active calls
         if (activeCalls.size == 2) {
             Log.i(TAG, "✓ 2 calls detected - checking if both answered...")
@@ -55,6 +60,11 @@ class HardreachInCallService : InCallService() {
         }
 
         Log.i(TAG, "Call state changed: $stateString (Total calls: ${activeCalls.size})")
+
+        // Launch InCallActivity when first call becomes active
+        if (state == Call.STATE_ACTIVE && activeCalls.size == 1) {
+            launchInCallUI(call)
+        }
 
         // When second call becomes active, merge immediately
         if (state == Call.STATE_ACTIVE && activeCalls.size == 2) {
@@ -135,6 +145,23 @@ class HardreachInCallService : InCallService() {
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to mute microphone: ${e.message}")
             RemoteLogger.e(applicationContext, TAG, "❌ Failed to mute microphone: ${e.message}")
+        }
+    }
+
+    private fun launchInCallUI(call: Call) {
+        try {
+            val intent = android.content.Intent(applicationContext, InCallActivity::class.java)
+            intent.flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP
+
+            // Get phone number from call
+            val phoneNumber = call.details?.handle?.schemeSpecificPart ?: "Unknown"
+            intent.putExtra("phone_number", phoneNumber)
+            intent.putExtra("contact_name", "Unknown") // TODO: Lookup contact name
+
+            applicationContext.startActivity(intent)
+            Log.i(TAG, "✓ Launched InCallActivity for $phoneNumber")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to launch InCallActivity: ${e.message}")
         }
     }
 

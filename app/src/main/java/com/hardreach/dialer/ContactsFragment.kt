@@ -13,7 +13,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -24,7 +23,7 @@ class ContactsFragment : Fragment() {
 
     private lateinit var searchBox: EditText
     private lateinit var recyclerView: RecyclerView
-    private lateinit var emptyView: TextView
+    private lateinit var emptyView: View
     private lateinit var adapter: ContactsAdapter
     private val allContacts = mutableListOf<Contact>()
 
@@ -66,7 +65,6 @@ class ContactsFragment : Fragment() {
                 Manifest.permission.READ_CONTACTS
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            emptyView.text = "Contacts permission required"
             emptyView.visibility = View.VISIBLE
             recyclerView.visibility = View.GONE
             return

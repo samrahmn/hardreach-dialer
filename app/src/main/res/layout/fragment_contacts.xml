@@ -6,15 +6,28 @@
     android:background="@color/background">
 
     <!-- Search Box -->
-    <EditText
-        android:id="@+id/search_box"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Search contacts..."
-        android:padding="16dp"
-        android:textSize="16sp"
-        android:background="@color/surface"
-        android:inputType="textPersonName|textCapWords" />
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <EditText
+            android:id="@+id/search_box"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:hint="Search contacts..."
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:textSize="16sp"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_hint"
+            android:background="@drawable/dialpad_button_pill"
+            android:inputType="textPersonName|textCapWords"
+            android:drawableLeft="@android:drawable/ic_menu_search"
+            android:drawablePadding="12dp"
+            android:drawableTint="@color/text_secondary" />
+    </LinearLayout>
 
     <!-- Contacts List -->
     <FrameLayout
@@ -26,18 +39,38 @@
             android:id="@+id/contacts_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="8dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="16dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
             android:clipToPadding="false" />
 
-        <TextView
+        <LinearLayout
             android:id="@+id/empty_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="No contacts found"
-            android:textSize="16sp"
-            android:textColor="@color/text_secondary"
-            android:visibility="gone" />
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No contacts found"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Try a different search term"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="8dp" />
+
+        </LinearLayout>
 
     </FrameLayout>
 

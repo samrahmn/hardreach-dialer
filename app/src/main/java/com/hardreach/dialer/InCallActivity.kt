@@ -123,11 +123,11 @@ class InCallActivity : AppCompatActivity() {
     }
 
     private fun minimizeToLogs() {
-        // Move to background and open MainActivity to view logs
+        // Open MainActivity to view logs while keeping call active
         val intent = Intent(this, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         startActivity(intent)
-        moveTaskToBack(true)
+        // Don't finish - call stays active, can return via notification or app switcher
     }
 
     private fun setupInCallDialpad() {

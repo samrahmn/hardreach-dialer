@@ -87,9 +87,10 @@
             android:name=".InCallActivity"
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-            android:launchMode="singleInstance"
+            android:launchMode="singleTop"
             android:showOnLockScreen="true"
-            android:turnScreenOn="true" />
+            android:turnScreenOn="true"
+            android:excludeFromRecents="false" />
 
         <service
             android:name=".WebhookService"

@@ -63,6 +63,14 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         updateUI()
         updateBatteryOptimizationStatus()
+
+        // Auto-restart service if it was enabled but isn't running
+        val prefs = getSharedPreferences("hardreach_dialer", MODE_PRIVATE)
+        val shouldBeEnabled = prefs.getBoolean("service_enabled", false)
+        if (shouldBeEnabled && !WebhookService.isRunning) {
+            android.util.Log.w("MainActivity", "Service should be running but isn't - restarting")
+            startWebhookService()
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

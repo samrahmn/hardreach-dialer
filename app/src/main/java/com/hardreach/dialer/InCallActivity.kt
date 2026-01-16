@@ -192,33 +192,10 @@ class InCallActivity : AppCompatActivity() {
     }
 
     private fun monitorActiveCalls() {
-        handler.post(object : Runnable {
-            override fun run() {
-                val telecomManager = getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-                try {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        val callsInProgress = telecomManager.getCallsInProgress()
-                        if (callsInProgress != null && callsInProgress.isNotEmpty()) {
-                            updateCallsList(callsInProgress)
-
-                            // Show merge button if we have 2+ calls not yet in conference
-                            if (callsInProgress.size >= 2) {
-                                btnMergeContainer.visibility = View.VISIBLE
-                            } else {
-                                btnMergeContainer.visibility = View.GONE
-                            }
-                        } else {
-                            activeCallsContainer.visibility = View.GONE
-                            btnMergeContainer.visibility = View.GONE
-                        }
-                    }
-                } catch (e: Exception) {
-                    android.util.Log.e("InCallActivity", "Error monitoring calls: ${e.message}")
-                }
-
-                handler.postDelayed(this, 1000) // Check every second
-            }
-        })
+        // For now, we'll keep merge button hidden until we have proper call state tracking
+        // This would require integration with InCallService which tracks active calls
+        btnMergeContainer.visibility = View.GONE
+        activeCallsContainer.visibility = View.GONE
     }
 
     private fun updateCallsList(calls: List<*>) {
@@ -242,7 +219,7 @@ class InCallActivity : AppCompatActivity() {
 
                 val callInfo = TextView(this).apply {
                     text = "Call" // Will show number if available
-                    textColor = 0xFFFFFFFF.toInt()
+                    setTextColor(0xFFFFFFFF.toInt())
                     textSize = 14f
                     layoutParams = LinearLayout.LayoutParams(
                         0,
@@ -272,25 +249,14 @@ class InCallActivity : AppCompatActivity() {
     }
 
     private fun manualMerge() {
-        val telecomManager = getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val calls = telecomManager.getCallsInProgress()
-                if (calls != null && calls.size >= 2) {
-                    Toast.makeText(this, "Merging calls...", Toast.LENGTH_SHORT).show()
-                    // The actual merge happens in CallMergeAccessibilityService
-                    // This button is a fallback for manual control
-                } else {
-                    Toast.makeText(this, "Need 2+ calls to merge", Toast.LENGTH_SHORT).show()
-                }
-            }
-        } catch (e: Exception) {
-            Toast.makeText(this, "Merge failed: ${e.message}", Toast.LENGTH_SHORT).show()
-            android.util.Log.e("InCallActivity", "Error merging: ${e.message}")
-        }
+        Toast.makeText(this, "Merge calls manually from dialer UI", Toast.LENGTH_SHORT).show()
+        // The actual merge happens in CallMergeAccessibilityService
+        // This button serves as a reminder to merge from the phone's native UI
     }
 
-    private fun disconnectCall(call: Any) {
+    private fun disconnectCall(call: Any?) {
+        if (call == null) return
+
         try {
             // Disconnect individual call using reflection
             val disconnectMethod = call.javaClass.getMethod("disconnect")

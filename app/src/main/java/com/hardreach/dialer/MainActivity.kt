@@ -5,8 +5,11 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import android.telecom.PhoneAccount
 import android.telecom.PhoneAccountHandle
 import android.telecom.TelecomManager
@@ -32,12 +35,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var saveButton: Button
     private lateinit var testPollButton: Button
     private lateinit var requestDefaultDialerButton: Button
+    private lateinit var batteryOptimizationButton: Button
     private lateinit var statusText: TextView
     private lateinit var liveStatusText: TextView
     private lateinit var logText: TextView
 
     private val PERMISSIONS_REQUEST_CODE = 100
     private val DEFAULT_DIALER_REQUEST_CODE = 200
+    private val BATTERY_OPTIMIZATION_REQUEST_CODE = 300
 
     private fun cleanApiKey(key: String): String {
         return key.replace("\\s".toRegex(), "")
@@ -57,6 +62,33 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateUI()
+        updateBatteryOptimizationStatus()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        when (requestCode) {
+            BATTERY_OPTIMIZATION_REQUEST_CODE -> {
+                updateBatteryOptimizationStatus()
+                val powerManager = getSystemService(PowerManager::class.java)
+                val isIgnoring = powerManager?.isIgnoringBatteryOptimizations(packageName) ?: false
+                if (isIgnoring) {
+                    Toast.makeText(this, "✅ Battery optimization disabled!", Toast.LENGTH_LONG).show()
+                    logText.text = "Battery optimization disabled ✅\nService can now run in background"
+                } else {
+                    Toast.makeText(this, "⚠️ Battery optimization still enabled", Toast.LENGTH_LONG).show()
+                    logText.text = "Warning: Battery optimization still enabled\nService may be killed"
+                }
+            }
+            DEFAULT_DIALER_REQUEST_CODE -> {
+                val telecomManager = getSystemService(TelecomManager::class.java)
+                val isDefaultDialer = packageName == telecomManager?.defaultDialerPackage
+                if (isDefaultDialer) {
+                    Toast.makeText(this, "✅ Hardreach is now default dialer!", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
     }
 
     /**
@@ -86,6 +118,7 @@ class MainActivity : AppCompatActivity() {
         saveButton = findViewById(R.id.save_button)
         testPollButton = findViewById(R.id.test_poll_button)
         requestDefaultDialerButton = findViewById(R.id.request_default_dialer_button)
+        batteryOptimizationButton = findViewById(R.id.battery_optimization_button)
         statusText = findViewById(R.id.status_text)
         liveStatusText = findViewById(R.id.live_status_text)
         logText = findViewById(R.id.log_text)
@@ -93,6 +126,7 @@ class MainActivity : AppCompatActivity() {
         saveButton.setOnClickListener { saveSettings() }
         testPollButton.setOnClickListener { testPoll() }
         requestDefaultDialerButton.setOnClickListener { requestDefaultDialer() }
+        batteryOptimizationButton.setOnClickListener { requestBatteryOptimization() }
         serviceSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) startWebhookService() else stopWebhookService()
         }
@@ -100,6 +134,9 @@ class MainActivity : AppCompatActivity() {
         // Initialize with default status
         liveStatusText.text = "Waiting for calls..."
         logText.text = "Logs will appear here as calls are made..."
+
+        // Check and update button states
+        updateBatteryOptimizationStatus()
     }
     
     private fun testPoll() {
@@ -239,6 +276,50 @@ class MainActivity : AppCompatActivity() {
             }
         } else {
             Toast.makeText(this, "Requires Android 6.0 or higher", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun requestBatteryOptimization() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val powerManager = getSystemService(PowerManager::class.java)
+            val isIgnoring = powerManager?.isIgnoringBatteryOptimizations(packageName) ?: false
+
+            if (isIgnoring) {
+                Toast.makeText(this, "✅ Battery optimization already disabled", Toast.LENGTH_LONG).show()
+                logText.text = "Battery optimization: Already disabled ✅"
+            } else {
+                try {
+                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                    intent.data = Uri.parse("package:$packageName")
+                    startActivityForResult(intent, BATTERY_OPTIMIZATION_REQUEST_CODE)
+                    Toast.makeText(this, "Please allow unrestricted battery usage", Toast.LENGTH_LONG).show()
+                    RemoteLogger.i(this, "MainActivity", "Requesting battery optimization exemption")
+                } catch (e: Exception) {
+                    Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                    RemoteLogger.e(this, "MainActivity", "❌ Battery optimization request failed: ${e.message}")
+                }
+            }
+        } else {
+            Toast.makeText(this, "Not needed on Android 5 and below", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun updateBatteryOptimizationStatus() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val powerManager = getSystemService(PowerManager::class.java)
+            val isIgnoring = powerManager?.isIgnoringBatteryOptimizations(packageName) ?: false
+
+            batteryOptimizationButton.text = if (isIgnoring) {
+                "BATTERY: UNRESTRICTED ✅"
+            } else {
+                "DISABLE BATTERY OPTIMIZATION"
+            }
+
+            batteryOptimizationButton.backgroundTintList = if (isIgnoring) {
+                android.content.res.ColorStateList.valueOf(0xFF4CAF50.toInt())
+            } else {
+                android.content.res.ColorStateList.valueOf(0xFFFF9800.toInt())
+            }
         }
     }
 

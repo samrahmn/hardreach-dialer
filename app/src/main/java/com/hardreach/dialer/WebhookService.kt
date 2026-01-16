@@ -2,6 +2,7 @@ package com.hardreach.dialer
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -10,6 +11,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.IBinder
 import android.os.Looper
+import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import okhttp3.*
@@ -30,6 +32,7 @@ class WebhookService : Service() {
     private lateinit var handlerThread: HandlerThread
     private lateinit var handler: Handler
     private val client = OkHttpClient()
+    private lateinit var wakeLock: PowerManager.WakeLock
     
     private val pollRunnable = object : Runnable {
         override fun run() {
@@ -67,7 +70,41 @@ class WebhookService : Service() {
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.i(TAG, "onStartCommand called - ensuring service stays alive")
+
+        // Acquire partial wake lock to prevent CPU sleep
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        if (!::wakeLock.isInitialized || !wakeLock.isHeld) {
+            wakeLock = powerManager.newWakeLock(
+                PowerManager.PARTIAL_WAKE_LOCK,
+                "HardreachDialer::WebhookServiceWakeLock"
+            )
+            wakeLock.acquire()
+            Log.i(TAG, "WakeLock acquired")
+        }
+
         return START_STICKY
+    }
+
+    override fun onTaskRemoved(intent: Intent?) {
+        super.onTaskRemoved(intent)
+        Log.w(TAG, "Task removed - restarting service")
+
+        // Restart service when app is swiped away
+        val restartIntent = Intent(applicationContext, WebhookService::class.java)
+        val pendingIntent = PendingIntent.getService(
+            applicationContext,
+            1,
+            restartIntent,
+            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+        alarmManager.set(
+            android.app.AlarmManager.ELAPSED_REALTIME_WAKEUP,
+            android.os.SystemClock.elapsedRealtime() + 1000,
+            pendingIntent
+        )
     }
     
     override fun onDestroy() {
@@ -76,7 +113,22 @@ class WebhookService : Service() {
             isRunning = false
             handler.removeCallbacks(pollRunnable)
             handlerThread.quitSafely()
+
+            if (::wakeLock.isInitialized && wakeLock.isHeld) {
+                wakeLock.release()
+                Log.i(TAG, "WakeLock released")
+            }
+
             Log.i(TAG, "Service stopped")
+
+            // Attempt to restart service
+            val restartIntent = Intent(applicationContext, WebhookService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                applicationContext.startForegroundService(restartIntent)
+            } else {
+                applicationContext.startService(restartIntent)
+            }
+            Log.w(TAG, "Service restart scheduled")
         } catch (e: Exception) {
             Log.e(TAG, "Service destroy error: ${e.message}", e)
         }
@@ -96,13 +148,25 @@ class WebhookService : Service() {
         }
     }
     
-    private fun createNotification() =
-        NotificationCompat.Builder(this, CHANNEL_ID)
+    private fun createNotification(): android.app.Notification {
+        val notificationIntent = Intent(this, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            notificationIntent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Hardreach Dialer Active")
-            .setContentText("Listening for calls from CRM")
+            .setContentText("Listening for calls from CRM - Tap to view")
             .setSmallIcon(android.R.drawable.ic_menu_call)
+            .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .setAutoCancel(false)
             .build()
+    }
     
     private fun pollForCalls() {
         val prefs = getSharedPreferences("hardreach_dialer", Context.MODE_PRIVATE)

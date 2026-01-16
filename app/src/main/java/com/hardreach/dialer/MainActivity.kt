@@ -212,18 +212,32 @@ class MainActivity : AppCompatActivity() {
             serviceSwitch.isChecked = false
             return
         }
-        
-        val intent = Intent(this, WebhookService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
+
+        // Check exact alarm permission on Android 12+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = getSystemService(android.app.AlarmManager::class.java)
+            if (!alarmManager.canScheduleExactAlarms()) {
+                Toast.makeText(this, "Exact alarm permission required", Toast.LENGTH_LONG).show()
+                // Request permission
+                val intent = Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                startActivity(intent)
+                serviceSwitch.isChecked = false
+                return
+            }
         }
+
+        // Start alarm-based polling
+        AlarmScheduler.schedulePolling(this)
+        Toast.makeText(this, "Polling enabled via AlarmManager", Toast.LENGTH_SHORT).show()
         updateUI()
     }
-    
+
     private fun stopWebhookService() {
+        // Cancel alarm-based polling
+        AlarmScheduler.cancelPolling(this)
+        // Stop any running service instance
         stopService(Intent(this, WebhookService::class.java))
+        Toast.makeText(this, "Polling disabled", Toast.LENGTH_SHORT).show()
         updateUI()
     }
     

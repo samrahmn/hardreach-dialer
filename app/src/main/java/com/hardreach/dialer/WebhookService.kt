@@ -70,20 +70,41 @@ class WebhookService : Service() {
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.i(TAG, "onStartCommand called - ensuring service stays alive")
+        val action = intent?.action
 
-        // Acquire partial wake lock to prevent CPU sleep
-        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        if (!::wakeLock.isInitialized || !wakeLock.isHeld) {
-            wakeLock = powerManager.newWakeLock(
-                PowerManager.PARTIAL_WAKE_LOCK,
-                "HardreachDialer::WebhookServiceWakeLock"
-            )
-            wakeLock.acquire()
-            Log.i(TAG, "WakeLock acquired")
+        if (action == "POLL_ONCE") {
+            // One-shot poll triggered by alarm
+            Log.i(TAG, "POLL_ONCE - single poll then stop")
+            RemoteLogger.i(applicationContext, TAG, "Alarm poll - checking for calls")
+
+            handler.post {
+                try {
+                    pollForCalls()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Poll error: ${e.message}", e)
+                }
+                // Stop service after polling
+                stopSelf()
+            }
+
+            return START_NOT_STICKY
+        } else {
+            // Continuous mode (manual service toggle)
+            Log.i(TAG, "onStartCommand called - ensuring service stays alive")
+
+            // Acquire partial wake lock to prevent CPU sleep
+            val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+            if (!::wakeLock.isInitialized || !wakeLock.isHeld) {
+                wakeLock = powerManager.newWakeLock(
+                    PowerManager.PARTIAL_WAKE_LOCK,
+                    "HardreachDialer::WebhookServiceWakeLock"
+                )
+                wakeLock.acquire()
+                Log.i(TAG, "WakeLock acquired")
+            }
+
+            return START_STICKY
         }
-
-        return START_STICKY
     }
 
     override fun onTaskRemoved(intent: Intent?) {

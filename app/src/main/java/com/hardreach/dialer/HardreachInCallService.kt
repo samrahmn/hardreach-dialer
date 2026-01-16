@@ -28,12 +28,6 @@ class HardreachInCallService : InCallService() {
             }
         })
 
-        // Launch InCallActivity immediately when first call added (regardless of state)
-        if (activeCalls.size == 1) {
-            Log.i(TAG, "First call added - launching InCallActivity")
-            launchInCallUI(call)
-        }
-
         // Try to merge if we have 2 active calls
         if (activeCalls.size == 2) {
             Log.i(TAG, "✓ 2 calls detected - checking if both answered...")
@@ -142,23 +136,6 @@ class HardreachInCallService : InCallService() {
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to mute microphone: ${e.message}")
             RemoteLogger.e(applicationContext, TAG, "❌ Failed to mute microphone: ${e.message}")
-        }
-    }
-
-    private fun launchInCallUI(call: Call) {
-        try {
-            val intent = android.content.Intent(applicationContext, InCallActivity::class.java)
-            intent.flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP
-
-            // Get phone number from call
-            val phoneNumber = call.details?.handle?.schemeSpecificPart ?: "Unknown"
-            intent.putExtra("phone_number", phoneNumber)
-            intent.putExtra("contact_name", "Unknown") // TODO: Lookup contact name
-
-            applicationContext.startActivity(intent)
-            Log.i(TAG, "✓ Launched InCallActivity for $phoneNumber")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to launch InCallActivity: ${e.message}")
         }
     }
 

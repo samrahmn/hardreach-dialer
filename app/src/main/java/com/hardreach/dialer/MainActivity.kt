@@ -346,15 +346,15 @@ class MainActivity : AppCompatActivity() {
             val isIgnoring = powerManager?.isIgnoringBatteryOptimizations(packageName) ?: false
 
             batteryOptimizationButton.text = if (isIgnoring) {
-                "BATTERY: UNRESTRICTED ✅"
+                "Battery Unrestricted ✅"
             } else {
-                "DISABLE BATTERY OPTIMIZATION"
+                "Disable Battery Optimization"
             }
 
             batteryOptimizationButton.backgroundTintList = if (isIgnoring) {
-                android.content.res.ColorStateList.valueOf(0xFF4CAF50.toInt())
+                android.content.res.ColorStateList.valueOf(getColor(R.color.accent))
             } else {
-                android.content.res.ColorStateList.valueOf(0xFFFF9800.toInt())
+                android.content.res.ColorStateList.valueOf(getColor(R.color.warning))
             }
         }
     }

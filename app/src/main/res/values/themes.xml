@@ -15,19 +15,25 @@
         <item name="android:textColorPrimary">@color/text_primary</item>
         <item name="android:textColorSecondary">@color/text_secondary</item>
         <item name="android:textColorHint">@color/text_hint</item>
+
+        <!-- Status bar -->
+        <item name="android:statusBarColor">@color/primary_dark</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
     <!-- Theme for DialerActivity without ActionBar -->
     <style name="AppTheme.NoActionBar" parent="AppTheme">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/background_light</item>
     </style>
 
-    <!-- Theme for InCallActivity (dark) -->
+    <!-- Theme for InCallActivity (dark with gradient) -->
     <style name="AppTheme.InCall" parent="AppTheme">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <item name="android:windowBackground">@color/surface_dark</item>
-        <item name="android:statusBarColor">@color/surface_dark</item>
+        <item name="android:windowBackground">@drawable/bg_incall_gradient</item>
+        <item name="android:statusBarColor">@color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>

@@ -2,135 +2,80 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/surface_dark">
-
-    <!-- Top Bar with Minimize Button -->
-    <LinearLayout
-        android:id="@+id/top_bar"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:background="@color/primary"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingLeft="20dp"
-        android:paddingRight="20dp"
-        android:layout_alignParentTop="true">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Active Call"
-            android:textColor="@color/text_white"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <Button
-            android:id="@+id/btn_minimize"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="View Logs"
-            android:textSize="13sp"
-            android:backgroundTint="@color/primary_light"
-            android:textColor="@color/text_white" />
-    </LinearLayout>
+    android:layout_height="match_parent">
 
     <!-- Call Info Section -->
-    <ScrollView
-        android:id="@+id/call_info_scroll"
+    <LinearLayout
+        android:id="@+id/call_info_section"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/top_bar"
-        android:layout_above="@+id/control_buttons_section"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp">
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginTop="80dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <!-- Contact Avatar Placeholder -->
+        <View
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:background="@drawable/bg_avatar" />
+
+        <!-- Contact Name -->
+        <TextView
+            android:id="@+id/contact_name"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="24dp">
+            android:text="Unknown"
+            android:textColor="@color/text_white"
+            android:textSize="28sp"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginTop="24dp" />
 
-            <!-- Main Call Info -->
-            <TextView
-                android:id="@+id/contact_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Unknown"
-                android:textColor="@color/text_white"
-                android:textSize="32sp"
-                android:textStyle="bold" />
+        <!-- Phone Number -->
+        <TextView
+            android:id="@+id/phone_number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+971 50 123 4567"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp"
+            android:layout_marginTop="8dp" />
 
-            <TextView
-                android:id="@+id/phone_number"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="+971 50 123 4567"
-                android:textColor="@color/text_secondary"
-                android:textSize="18sp"
-                android:layout_marginTop="8dp" />
+        <!-- Call Status -->
+        <TextView
+            android:id="@+id/call_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Calling..."
+            android:textColor="@color/status_ringing"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginTop="24dp" />
 
-            <TextView
-                android:id="@+id/call_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Calling..."
-                android:textColor="@color/accent"
-                android:textSize="16sp"
-                android:layout_marginTop="16dp" />
+        <!-- Call Duration -->
+        <TextView
+            android:id="@+id/call_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:textColor="@color/text_white"
+            android:textSize="36sp"
+            android:fontFamily="sans-serif-light"
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
+    </LinearLayout>
 
-            <TextView
-                android:id="@+id/call_duration"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="00:00"
-                android:textColor="@color/text_white"
-                android:textSize="20sp"
-                android:layout_marginTop="8dp"
-                android:visibility="gone" />
-
-            <!-- Active Calls List (for conference) -->
-            <LinearLayout
-                android:id="@+id/active_calls_container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="40dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Active Calls"
-                    android:textColor="@color/text_white"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="16dp" />
-
-                <!-- Active calls will be added here programmatically -->
-                <LinearLayout
-                    android:id="@+id/active_calls_list"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical" />
-            </LinearLayout>
-        </LinearLayout>
-    </ScrollView>
-
-    <!-- Control Buttons Section -->
+    <!-- Control Buttons -->
     <LinearLayout
         android:id="@+id/control_buttons_section"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="32dp"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp">
+        android:orientation="vertical"
+        android:padding="24dp">
 
-        <!-- Row 1: Mute, Dialpad, Speaker -->
+        <!-- Top Row: Mute, Dialpad, Speaker -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -138,11 +83,11 @@
             android:gravity="center"
             android:layout_marginBottom="24dp">
 
+            <!-- Mute -->
             <LinearLayout
-                android:id="@+id/btn_mute_container"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:orientation="vertical"
                 android:gravity="center">
 
@@ -151,25 +96,26 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@android:drawable/ic_lock_silent_mode_off"
-                    android:backgroundTint="@color/button_inactive"
-                    android:tint="@color/text_white"
-                    app:fabSize="mini" />
+                    app:fabSize="normal"
+                    app:backgroundTint="@color/button_inactive"
+                    app:tint="@color/text_white"
+                    app:elevation="4dp" />
 
                 <TextView
                     android:id="@+id/label_mute"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Mute"
-                    android:textColor="@color/text_white"
+                    android:textColor="@color/text_secondary"
                     android:textSize="12sp"
                     android:layout_marginTop="8dp" />
             </LinearLayout>
 
+            <!-- Dialpad -->
             <LinearLayout
-                android:id="@+id/btn_dialpad_container"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:orientation="vertical"
                 android:gravity="center">
 
@@ -177,25 +123,26 @@
                     android:id="@+id/btn_dialpad"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@android:drawable/ic_menu_sort_by_size"
-                    android:backgroundTint="@color/button_inactive"
-                    android:tint="@color/text_white"
-                    app:fabSize="mini" />
+                    android:src="@android:drawable/ic_menu_view"
+                    app:fabSize="normal"
+                    app:backgroundTint="@color/button_inactive"
+                    app:tint="@color/text_white"
+                    app:elevation="4dp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Dialpad"
-                    android:textColor="@color/text_white"
+                    android:textColor="@color/text_secondary"
                     android:textSize="12sp"
                     android:layout_marginTop="8dp" />
             </LinearLayout>
 
+            <!-- Speaker -->
             <LinearLayout
-                android:id="@+id/btn_speaker_container"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:orientation="vertical"
                 android:gravity="center">
 
@@ -204,34 +151,34 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@android:drawable/ic_lock_silent_mode"
-                    android:backgroundTint="@color/button_inactive"
-                    android:tint="@color/text_white"
-                    app:fabSize="mini" />
+                    app:fabSize="normal"
+                    app:backgroundTint="@color/button_inactive"
+                    app:tint="@color/text_white"
+                    app:elevation="4dp" />
 
                 <TextView
                     android:id="@+id/label_speaker"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Speaker"
-                    android:textColor="@color/text_white"
+                    android:textColor="@color/text_secondary"
                     android:textSize="12sp"
                     android:layout_marginTop="8dp" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Row 2: Hold, Record, Merge -->
+        <!-- Bottom Row: Hold, End Call, Record -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginBottom="24dp">
+            android:gravity="center">
 
+            <!-- Hold -->
             <LinearLayout
-                android:id="@+id/btn_hold_container"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:orientation="vertical"
                 android:gravity="center">
 
@@ -240,25 +187,53 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@android:drawable/ic_media_pause"
-                    android:backgroundTint="@color/button_inactive"
-                    android:tint="@color/text_white"
-                    app:fabSize="mini" />
+                    app:fabSize="mini"
+                    app:backgroundTint="@color/button_inactive"
+                    app:tint="@color/text_white"
+                    app:elevation="4dp" />
 
                 <TextView
                     android:id="@+id/label_hold"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Hold"
-                    android:textColor="@color/text_white"
+                    android:textColor="@color/text_secondary"
                     android:textSize="12sp"
                     android:layout_marginTop="8dp" />
             </LinearLayout>
 
+            <!-- End Call -->
             <LinearLayout
-                android:id="@+id/btn_record_container"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/btn_end_call"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    app:fabSize="normal"
+                    app:backgroundTint="@color/error"
+                    app:tint="@color/text_white"
+                    app:elevation="6dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="End Call"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
+
+            <!-- Record -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:orientation="vertical"
                 android:gravity="center">
 
@@ -267,248 +242,100 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@android:drawable/ic_btn_speak_now"
-                    android:backgroundTint="@color/button_inactive"
-                    android:tint="@color/text_white"
-                    app:fabSize="mini" />
+                    app:fabSize="mini"
+                    app:backgroundTint="@color/button_inactive"
+                    app:tint="@color/text_white"
+                    app:elevation="4dp" />
 
                 <TextView
                     android:id="@+id/label_record"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Record"
-                    android:textColor="@color/text_white"
-                    android:textSize="12sp"
-                    android:layout_marginTop="8dp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/btn_merge_container"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:visibility="gone">
-
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/btn_merge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@android:drawable/ic_menu_add"
-                    android:backgroundTint="@color/warning"
-                    android:tint="@color/text_white"
-                    app:fabSize="mini" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Merge"
-                    android:textColor="@color/text_white"
+                    android:textColor="@color/text_secondary"
                     android:textSize="12sp"
                     android:layout_marginTop="8dp" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- End Call Button (Large, Red) -->
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/btn_end_call"
-            android:layout_width="wrap_content"
+        <!-- Merge Button (shown when 2 calls active) -->
+        <LinearLayout
+            android:id="@+id/btn_merge_container"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            android:backgroundTint="@color/error"
-            android:tint="@color/text_white"
-            app:fabSize="normal"
-            app:elevation="6dp"
-            android:layout_gravity="center" />
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/btn_merge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_menu_add"
+                app:fabSize="normal"
+                app:backgroundTint="@color/accent"
+                app:tint="@color/text_white"
+                app:elevation="6dp" />
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- In-Call Dialpad Overlay (Hidden by default) -->
+    <!-- Minimize Button -->
+    <Button
+        android:id="@+id/btn_minimize"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"
+        android:text="Logs"
+        android:textSize="12sp"
+        android:textColor="@color/text_white"
+        android:background="@drawable/bg_button_secondary"
+        android:padding="8dp" />
+
+    <!-- In-call Dialpad Overlay -->
     <LinearLayout
         android:id="@+id/in_call_dialpad_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@color/surface_dark"
+        android:background="@color/overlay_dark"
         android:visibility="gone"
-        android:padding="16dp">
-
-        <!-- Close Dialpad Button -->
-        <ImageButton
+        android:clickable="true"
+        android:focusable="true">
+        
+        <!-- Dialpad content would go here -->
+        <Button
             android:id="@+id/btn_close_dialpad"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            android:tint="@color/text_white"
-            android:layout_gravity="end" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Close"
+            android:layout_gravity="end"
+            android:layout_margin="16dp" />
 
-        <!-- Number Display -->
         <TextView
             android:id="@+id/dialpad_number_display"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text=""
-            android:textSize="32sp"
+            android:textSize="24sp"
             android:textColor="@color/text_white"
             android:gravity="center"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="32dp" />
+            android:padding="24dp" />
+    </LinearLayout>
 
-        <!-- Dialpad Grid -->
-        <GridLayout
+    <!-- Active calls list (hidden) -->
+    <LinearLayout
+        android:id="@+id/active_calls_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/active_calls_list"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:columnCount="3"
-            android:rowCount="4"
-            android:alignmentMode="alignBounds"
-            android:useDefaultMargins="true">
-
-            <!-- Same dialpad layout as main dialer -->
-            <Button
-                android:id="@+id/dialpad_btn_1"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_columnWeight="1"
-                android:layout_rowWeight="1"
-                android:text="1"
-                android:textSize="28sp"
-                android:textColor="@color/text_white"
-                android:textStyle="bold"
-                android:background="?attr/selectableItemBackground" />
-
-            <Button
-                android:id="@+id/dialpad_btn_2"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_columnWeight="1"
-                android:layout_rowWeight="1"
-                android:text="2\nABC"
-                android:textSize="28sp"
-                android:textColor="@color/text_white"
-                android:textStyle="bold"
-                android:background="?attr/selectableItemBackground" />
-
-            <Button
-                android:id="@+id/dialpad_btn_3"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_columnWeight="1"
-                android:layout_rowWeight="1"
-                android:text="3\nDEF"
-                android:textSize="28sp"
-                android:textColor="@color/text_white"
-                android:textStyle="bold"
-                android:background="?attr/selectableItemBackground" />
-
-            <Button
-                android:id="@+id/dialpad_btn_4"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_columnWeight="1"
-                android:layout_rowWeight="1"
-                android:text="4\nGHI"
-                android:textSize="28sp"
-                android:textColor="@color/text_white"
-                android:textStyle="bold"
-                android:background="?attr/selectableItemBackground" />
-
-            <Button
-                android:id="@+id/dialpad_btn_5"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_columnWeight="1"
-                android:layout_rowWeight="1"
-                android:text="5\nJKL"
-                android:textSize="28sp"
-                android:textColor="@color/text_white"
-                android:textStyle="bold"
-                android:background="?attr/selectableItemBackground" />
-
-            <Button
-                android:id="@+id/dialpad_btn_6"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_columnWeight="1"
-                android:layout_rowWeight="1"
-                android:text="6\nMNO"
-                android:textSize="28sp"
-                android:textColor="@color/text_white"
-                android:textStyle="bold"
-                android:background="?attr/selectableItemBackground" />
-
-            <Button
-                android:id="@+id/dialpad_btn_7"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_columnWeight="1"
-                android:layout_rowWeight="1"
-                android:text="7\nPQRS"
-                android:textSize="28sp"
-                android:textColor="@color/text_white"
-                android:textStyle="bold"
-                android:background="?attr/selectableItemBackground" />
-
-            <Button
-                android:id="@+id/dialpad_btn_8"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_columnWeight="1"
-                android:layout_rowWeight="1"
-                android:text="8\nTUV"
-                android:textSize="28sp"
-                android:textColor="@color/text_white"
-                android:textStyle="bold"
-                android:background="?attr/selectableItemBackground" />
-
-            <Button
-                android:id="@+id/dialpad_btn_9"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_columnWeight="1"
-                android:layout_rowWeight="1"
-                android:text="9\nWXYZ"
-                android:textSize="28sp"
-                android:textColor="@color/text_white"
-                android:textStyle="bold"
-                android:background="?attr/selectableItemBackground" />
-
-            <Button
-                android:id="@+id/dialpad_btn_star"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_columnWeight="1"
-                android:layout_rowWeight="1"
-                android:text="*"
-                android:textSize="28sp"
-                android:textColor="@color/text_white"
-                android:textStyle="bold"
-                android:background="?attr/selectableItemBackground" />
-
-            <Button
-                android:id="@+id/dialpad_btn_0"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_columnWeight="1"
-                android:layout_rowWeight="1"
-                android:text="0\n+"
-                android:textSize="28sp"
-                android:textColor="@color/text_white"
-                android:textStyle="bold"
-                android:background="?attr/selectableItemBackground" />
-
-            <Button
-                android:id="@+id/dialpad_btn_hash"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_columnWeight="1"
-                android:layout_rowWeight="1"
-                android:text="#"
-                android:textSize="28sp"
-                android:textColor="@color/text_white"
-                android:textStyle="bold"
-                android:background="?attr/selectableItemBackground" />
-        </GridLayout>
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
     </LinearLayout>
 
 </RelativeLayout>

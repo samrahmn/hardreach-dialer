@@ -1,44 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/background">
+    android:background="@color/background_light">
 
-    <!-- Suggested Contacts -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Suggested"
-        android:textSize="14sp"
-        android:textColor="@color/text_secondary"
-        android:layout_marginTop="16dp"
-        android:layout_marginLeft="24dp"
-        android:layout_marginBottom="8dp" />
-
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scrollbars="none"
-        android:paddingLeft="24dp"
-        android:paddingRight="24dp">
-
-        <LinearLayout
-            android:id="@+id/suggested_contacts_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal" />
-    </HorizontalScrollView>
-
-    <!-- Phone Number Display (inline, no box) -->
+    <!-- Phone Number Display -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="32dp"
-        android:layout_marginLeft="24dp"
-        android:layout_marginRight="24dp"
+        android:layout_marginTop="48dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
         android:gravity="center_vertical">
 
         <TextView
@@ -47,11 +21,14 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text=""
-            android:textSize="32sp"
+            android:textSize="36sp"
             android:textColor="@color/text_primary"
+            android:fontFamily="sans-serif-light"
             android:gravity="center"
-            android:minHeight="48dp"
-            android:letterSpacing="0.05" />
+            android:minHeight="56dp"
+            android:letterSpacing="0.08"
+            android:hint="Enter number"
+            android:textColorHint="@color/text_hint" />
 
         <ImageButton
             android:id="@+id/btn_backspace"
@@ -61,224 +38,160 @@
             android:src="@android:drawable/ic_input_delete"
             android:contentDescription="Delete"
             android:tint="@color/text_secondary"
-            android:scaleType="centerInside" />
+            android:scaleType="centerInside"
+            android:padding="12dp" />
     </LinearLayout>
+
+    <!-- Spacer -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.5" />
 
     <!-- Dialpad Grid -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="16dp"
-        android:layout_marginLeft="24dp"
-        android:layout_marginRight="24dp"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
         android:gravity="center">
 
-        <!-- Row 1 -->
+        <!-- Row 1: 1 2 3 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="80dp"
             android:orientation="horizontal"
             android:gravity="center">
 
             <Button
                 android:id="@+id/btn_1"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_margin="6dp"
-                android:text="1"
-                android:textSize="24sp"
-                android:textColor="@color/text_primary"
-                android:background="@drawable/dialpad_button_pill"
-                android:minHeight="56dp" />
+                style="@style/KeypadButton"
+                android:text="1" />
 
             <Button
                 android:id="@+id/btn_2"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_margin="6dp"
+                style="@style/KeypadButton"
                 android:text="2\nABC"
-                android:textSize="20sp"
-                android:textColor="@color/text_primary"
-                android:background="@drawable/dialpad_button_pill"
-                android:minHeight="56dp" />
+                android:textSize="22sp"
+                android:lineSpacingMultiplier="0.8" />
 
             <Button
                 android:id="@+id/btn_3"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_margin="6dp"
+                style="@style/KeypadButton"
                 android:text="3\nDEF"
-                android:textSize="20sp"
-                android:textColor="@color/text_primary"
-                android:background="@drawable/dialpad_button_pill"
-                android:minHeight="56dp" />
+                android:textSize="22sp"
+                android:lineSpacingMultiplier="0.8" />
         </LinearLayout>
 
-        <!-- Row 2 -->
+        <!-- Row 2: 4 5 6 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="80dp"
             android:orientation="horizontal"
             android:gravity="center">
 
             <Button
                 android:id="@+id/btn_4"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_margin="6dp"
+                style="@style/KeypadButton"
                 android:text="4\nGHI"
-                android:textSize="20sp"
-                android:textColor="@color/text_primary"
-                android:background="@drawable/dialpad_button_pill"
-                android:minHeight="56dp" />
+                android:textSize="22sp"
+                android:lineSpacingMultiplier="0.8" />
 
             <Button
                 android:id="@+id/btn_5"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_margin="6dp"
+                style="@style/KeypadButton"
                 android:text="5\nJKL"
-                android:textSize="20sp"
-                android:textColor="@color/text_primary"
-                android:background="@drawable/dialpad_button_pill"
-                android:minHeight="56dp" />
+                android:textSize="22sp"
+                android:lineSpacingMultiplier="0.8" />
 
             <Button
                 android:id="@+id/btn_6"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_margin="6dp"
+                style="@style/KeypadButton"
                 android:text="6\nMNO"
-                android:textSize="20sp"
-                android:textColor="@color/text_primary"
-                android:background="@drawable/dialpad_button_pill"
-                android:minHeight="56dp" />
+                android:textSize="22sp"
+                android:lineSpacingMultiplier="0.8" />
         </LinearLayout>
 
-        <!-- Row 3 -->
+        <!-- Row 3: 7 8 9 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="80dp"
             android:orientation="horizontal"
             android:gravity="center">
 
             <Button
                 android:id="@+id/btn_7"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_margin="6dp"
+                style="@style/KeypadButton"
                 android:text="7\nPQRS"
-                android:textSize="18sp"
-                android:textColor="@color/text_primary"
-                android:background="@drawable/dialpad_button_pill"
-                android:minHeight="56dp" />
+                android:textSize="20sp"
+                android:lineSpacingMultiplier="0.8" />
 
             <Button
                 android:id="@+id/btn_8"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_margin="6dp"
+                style="@style/KeypadButton"
                 android:text="8\nTUV"
-                android:textSize="18sp"
-                android:textColor="@color/text_primary"
-                android:background="@drawable/dialpad_button_pill"
-                android:minHeight="56dp" />
+                android:textSize="22sp"
+                android:lineSpacingMultiplier="0.8" />
 
             <Button
                 android:id="@+id/btn_9"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_margin="6dp"
+                style="@style/KeypadButton"
                 android:text="9\nWXYZ"
-                android:textSize="18sp"
-                android:textColor="@color/text_primary"
-                android:background="@drawable/dialpad_button_pill"
-                android:minHeight="56dp" />
+                android:textSize="20sp"
+                android:lineSpacingMultiplier="0.8" />
         </LinearLayout>
 
-        <!-- Row 4 -->
+        <!-- Row 4: * 0 # -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="80dp"
             android:orientation="horizontal"
             android:gravity="center">
 
             <Button
                 android:id="@+id/btn_star"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_margin="6dp"
-                android:text="*"
-                android:textSize="24sp"
-                android:textColor="@color/text_primary"
-                android:background="@drawable/dialpad_button_pill"
-                android:minHeight="56dp" />
+                style="@style/KeypadButton"
+                android:text="*" />
 
             <Button
                 android:id="@+id/btn_0"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_margin="6dp"
+                style="@style/KeypadButton"
                 android:text="0\n+"
-                android:textSize="20sp"
-                android:textColor="@color/text_primary"
-                android:background="@drawable/dialpad_button_pill"
-                android:minHeight="56dp" />
+                android:textSize="22sp"
+                android:lineSpacingMultiplier="0.8" />
 
             <Button
                 android:id="@+id/btn_hash"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_margin="6dp"
-                android:text="#"
-                android:textSize="24sp"
-                android:textColor="@color/text_primary"
-                android:background="@drawable/dialpad_button_pill"
-                android:minHeight="56dp" />
+                style="@style/KeypadButton"
+                android:text="#" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Call Button (Large Pill) -->
-    <LinearLayout
+    <!-- Spacer -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Call Button -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center">
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="32dp">
 
-        <Button
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/btn_call"
             android:layout_width="wrap_content"
-            android:layout_height="56dp"
-            android:minWidth="200dp"
-            android:text="Call"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_white"
-            android:background="@drawable/call_button_background"
-            android:drawableLeft="@android:drawable/ic_menu_call"
-            android:drawableTint="@color/text_white"
-            android:drawablePadding="8dp"
-            android:paddingLeft="32dp"
-            android:paddingRight="32dp" />
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@android:drawable/ic_menu_call"
+            app:tint="@color/text_white"
+            app:backgroundTint="@color/accent"
+            app:fabSize="normal"
+            app:elevation="6dp" />
+    </FrameLayout>
 
 </LinearLayout>

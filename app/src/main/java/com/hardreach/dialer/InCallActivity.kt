@@ -10,11 +10,11 @@ import android.os.Looper
 import android.telecom.TelecomManager
 import android.view.View
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class InCallActivity : AppCompatActivity() {
 
@@ -23,13 +23,13 @@ class InCallActivity : AppCompatActivity() {
     private lateinit var callStatus: TextView
     private lateinit var callDuration: TextView
 
-    private lateinit var btnMute: FloatingActionButton
-    private lateinit var btnSpeaker: FloatingActionButton
-    private lateinit var btnDialpad: FloatingActionButton
-    private lateinit var btnHold: FloatingActionButton
-    private lateinit var btnEndCall: FloatingActionButton
-    private lateinit var btnRecord: FloatingActionButton
-    private lateinit var btnMerge: FloatingActionButton
+    private lateinit var btnMute: ImageButton
+    private lateinit var btnSpeaker: ImageButton
+    private lateinit var btnDialpad: ImageButton
+    private lateinit var btnHold: ImageButton
+    private lateinit var btnEndCall: ImageButton
+    private lateinit var btnRecord: ImageButton
+    private lateinit var btnMerge: ImageButton
 
     private lateinit var labelMute: TextView
     private lateinit var labelSpeaker: TextView

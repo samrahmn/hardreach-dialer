@@ -19,48 +19,18 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-      with:
-        api-level: 34
-        build-tools: 34.0.0
-        cmake-version: 3.22.1
-
-    - name: Accept Android licenses
-      run: yes | sdkmanager --licenses || true
-
-    - name: Install SDK components
-      run: |
-        sdkmanager "platforms;android-34"
-        sdkmanager "build-tools;34.0.0"
-
-    - name: Cache Gradle packages
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v2
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Build Debug APK
-      run: ./gradlew assembleDebug --stacktrace --info
+    - name: Build with Gradle
+      run: ./gradlew assembleDebug --stacktrace
 
     - name: Upload APK
-      if: success()
       uses: actions/upload-artifact@v4
+      if: success()
       with:
         name: hardreach-dialer-debug
         path: app/build/outputs/apk/debug/app-debug.apk
-
-    - name: Get APK info
-      if: success()
-      run: |
-        APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
-        APK_SIZE=$(du -h "$APK_PATH" | cut -f1)
-        echo "APK Size: $APK_SIZE"
-        echo "APK Path: $APK_PATH"

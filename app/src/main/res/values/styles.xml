@@ -62,11 +62,11 @@
         <item name="android:background">@color/divider</item>
     </style>
 
-    <!-- FAB Styles -->
-    <style name="FAB" parent="Widget.Design.FloatingActionButton">
-        <item name="backgroundTint">@color/fab_background</item>
-        <item name="tint">@color/text_white</item>
-        <item name="elevation">6dp</item>
+    <!-- FAB Styles (simplified for ImageButton) -->
+    <style name="FAB" parent="Widget.AppCompat.ImageButton">
+        <item name="android:background">@drawable/call_button_background</item>
+        <item name="android:tint">@color/text_white</item>
+        <item name="android:elevation">6dp</item>
     </style>
 
     <!-- Keypad Button Style -->

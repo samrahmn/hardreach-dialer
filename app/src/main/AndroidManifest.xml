@@ -99,6 +99,16 @@
             android:turnScreenOn="true"
             android:excludeFromRecents="false" />
 
+        <!-- Call Confirmation Dialog -->
+        <activity
+            android:name=".ConfirmCallActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme.InCall"
+            android:launchMode="singleTop"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:excludeFromRecents="true" />
+
         <service
             android:name=".WebhookService"
             android:enabled="true"

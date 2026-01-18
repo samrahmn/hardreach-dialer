@@ -232,9 +232,17 @@ class WebhookService : Service() {
                 val teamMemberNumber = call.getString("team_member_number")
                 val contactNumber = call.getString("contact_number")
 
-                Log.i(TAG, "Initiating call ID $callId: $teamMemberNumber -> $contactNumber")
-                StatusManager.log("Found pending call #$callId - initiating conference")
-                callManager.initiateConferenceCall(callId, teamMemberNumber, contactNumber)
+                Log.i(TAG, "Found pending call ID $callId: $teamMemberNumber -> $contactNumber")
+                StatusManager.log("Found pending call #$callId - showing confirmation")
+
+                // Launch confirmation dialog instead of auto-dialing
+                val confirmIntent = Intent(applicationContext, ConfirmCallActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    putExtra("call_id", callId)
+                    putExtra("team_member_number", teamMemberNumber)
+                    putExtra("contact_number", contactNumber)
+                }
+                applicationContext.startActivity(confirmIntent)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Polling exception: ${e.message}", e)

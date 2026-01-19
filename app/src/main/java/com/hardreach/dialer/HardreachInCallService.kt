@@ -24,6 +24,9 @@ class HardreachInCallService : InCallService() {
         // Track if first call is connected
         var isFirstCallConnected = false
 
+        // Track if this is a CRM-triggered call (for auto-mute)
+        var isCrmCall = false
+
         // Track call states
         private val callStates = mutableMapOf<Call, Int>()
 
@@ -34,6 +37,7 @@ class HardreachInCallService : InCallService() {
         fun reset() {
             onFirstCallConnected = null
             isFirstCallConnected = false
+            isCrmCall = false
             callStates.clear()
         }
 
@@ -156,7 +160,7 @@ class HardreachInCallService : InCallService() {
         try {
             val phoneNumber = call.details?.handle?.schemeSpecificPart ?: "Unknown"
 
-            Log.i(TAG, "Launching InCallActivity for: $phoneNumber")
+            Log.i(TAG, "Launching InCallActivity for: $phoneNumber (CRM call: $isCrmCall)")
             RemoteLogger.i(applicationContext, TAG, "Launching InCallActivity for: $phoneNumber")
 
             val intent = Intent(this, InCallActivity::class.java).apply {
@@ -165,6 +169,7 @@ class HardreachInCallService : InCallService() {
                         Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
                 putExtra("phone_number", phoneNumber)
                 putExtra("contact_name", phoneNumber)
+                putExtra("is_crm_call", isCrmCall)  // For auto-mute
             }
             startActivity(intent)
         } catch (e: Exception) {

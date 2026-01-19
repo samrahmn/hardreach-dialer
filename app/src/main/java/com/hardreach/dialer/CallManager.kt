@@ -67,6 +67,7 @@ class CallManager(private val context: Context) {
 
         // Reset states
         HardreachInCallService.reset()
+        HardreachInCallService.isCrmCall = true  // Mark as CRM call for auto-mute
         ConfirmCallActivity.reset()
 
         if (autoAcceptMode) {

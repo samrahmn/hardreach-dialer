@@ -42,7 +42,7 @@ class InCallActivity : AppCompatActivity() {
     private lateinit var btnMergeContainer: LinearLayout
     private lateinit var btnMinimize: Button
 
-    private var isMuted = true  // Auto-mute by default (prospect shouldn't hear third party)
+    private var isMuted = false  // Only auto-muted for CRM calls
     private var isSpeakerOn = false
     private var isOnHold = false
     private var isRecording = false
@@ -71,8 +71,11 @@ class InCallActivity : AppCompatActivity() {
         contactName.text = name
         callStatus.text = "Calling..."
 
-        // Auto-mute microphone by default (prospect shouldn't hear third party)
-        applyAutoMute()
+        // Auto-mute only for CRM calls (prospect shouldn't hear third party)
+        val isCrmCall = intent.getBooleanExtra("is_crm_call", false)
+        if (isCrmCall) {
+            applyAutoMute()
+        }
 
         // Start call duration timer
         startCallDurationTimer()

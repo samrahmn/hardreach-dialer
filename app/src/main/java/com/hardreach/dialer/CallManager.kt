@@ -220,34 +220,26 @@ class CallManager(private val context: Context) {
     }
 
     /**
-     * Merge active calls into conference
+     * Merge active calls into conference using InCallService
      */
     private fun mergeCallsToConference() {
         try {
-            val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+            Log.i(TAG, "Attempting merge via InCallService...")
+            RemoteLogger.i(context, TAG, "Attempting merge via InCallService...")
 
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                try {
-                    val intent = Intent("com.android.phone.ACTION_MERGE_CALLS")
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    context.startActivity(intent)
-                    Log.i(TAG, "✓ Merge command sent")
-                } catch (e: Exception) {
-                    Log.w(TAG, "Merge intent failed: ${e.message}")
-                    try {
-                        Runtime.getRuntime().exec("input keyevent 17")
-                        Log.i(TAG, "✓ Merge keyevent sent")
-                    } catch (e2: Exception) {
-                        Log.w(TAG, "Keyevent also failed: ${e2.message}")
-                    }
-                }
+            val merged = HardreachInCallService.mergeCalls()
+
+            if (merged) {
+                Log.i(TAG, "✓ Merge command sent successfully")
+                RemoteLogger.i(context, TAG, "✓ Merge command sent")
+            } else {
+                Log.w(TAG, "Merge returned false - may need manual merge")
+                RemoteLogger.w(context, TAG, "Merge failed - tap Merge button manually")
+                StatusManager.log("Tap 'Merge' button if calls aren't merged")
             }
-
-            Log.i(TAG, "Note: If merge doesn't work automatically, tap 'Merge' button on phone")
-            StatusManager.log("Tap 'Merge' button if calls aren't merged")
-
         } catch (e: Exception) {
             Log.e(TAG, "Merge failed: ${e.message}")
+            RemoteLogger.e(context, TAG, "Merge exception: ${e.message}")
             StatusManager.log("Please tap 'Merge' button manually")
         }
     }

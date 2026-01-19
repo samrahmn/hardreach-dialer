@@ -204,10 +204,31 @@ class InCallActivity : AppCompatActivity() {
     }
 
     private fun monitorActiveCalls() {
-        // For now, we'll keep merge button hidden until we have proper call state tracking
-        // This would require integration with InCallService which tracks active calls
-        btnMergeContainer.visibility = View.GONE
-        activeCallsContainer.visibility = View.GONE
+        // Check for multiple calls periodically
+        val checkRunnable = object : Runnable {
+            override fun run() {
+                val activeCalls = HardreachInCallService.getActiveCalls()
+
+                if (activeCalls.size >= 2) {
+                    // Show merge button when 2+ calls
+                    btnMergeContainer.visibility = View.VISIBLE
+                    activeCallsContainer.visibility = View.VISIBLE
+                    updateCallsList(activeCalls)
+                    callStatus.text = "${activeCalls.size} calls active"
+                } else if (activeCalls.size == 1) {
+                    btnMergeContainer.visibility = View.GONE
+                    activeCallsContainer.visibility = View.GONE
+                    callStatus.text = "Active"
+                } else {
+                    // No calls - close activity
+                    finish()
+                    return
+                }
+
+                handler.postDelayed(this, 1000)
+            }
+        }
+        handler.post(checkRunnable)
     }
 
     private fun updateCallsList(calls: List<*>) {
@@ -261,9 +282,17 @@ class InCallActivity : AppCompatActivity() {
     }
 
     private fun manualMerge() {
-        Toast.makeText(this, "Merge calls manually from dialer UI", Toast.LENGTH_SHORT).show()
-        // The actual merge happens in CallMergeAccessibilityService
-        // This button serves as a reminder to merge from the phone's native UI
+        Toast.makeText(this, "Merging calls...", Toast.LENGTH_SHORT).show()
+
+        val merged = HardreachInCallService.mergeCalls()
+
+        if (merged) {
+            Toast.makeText(this, "✓ Calls merged!", Toast.LENGTH_SHORT).show()
+            callStatus.text = "Conference"
+            btnMergeContainer.visibility = View.GONE
+        } else {
+            Toast.makeText(this, "Merge failed - try phone's native merge button", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun disconnectCall(call: Any?) {

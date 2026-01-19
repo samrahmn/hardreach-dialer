@@ -36,6 +36,21 @@ class HardreachInCallService : InCallService() {
             isFirstCallConnected = false
             callStates.clear()
         }
+
+        /**
+         * Merge all active calls into a conference
+         */
+        fun mergeCalls(): Boolean {
+            val service = instance ?: return false
+            return service.performMerge()
+        }
+
+        /**
+         * Get all active calls
+         */
+        fun getActiveCalls(): List<Call> {
+            return instance?.activeCalls?.toList() ?: emptyList()
+        }
     }
 
     private val TAG = "InCallService"
@@ -155,6 +170,48 @@ class HardreachInCallService : InCallService() {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to launch InCallActivity: ${e.message}")
             RemoteLogger.e(applicationContext, TAG, "Failed to launch InCallActivity: ${e.message}")
+        }
+    }
+
+    /**
+     * Perform the actual call merge using Call.conference()
+     */
+    fun performMerge(): Boolean {
+        if (activeCalls.size < 2) {
+            Log.w(TAG, "Cannot merge - need at least 2 calls, have ${activeCalls.size}")
+            return false
+        }
+
+        try {
+            // Get the two calls
+            val firstCall = activeCalls[0]
+            val secondCall = activeCalls[1]
+
+            Log.i(TAG, "Attempting to merge ${activeCalls.size} calls...")
+            RemoteLogger.i(applicationContext, TAG, "Merging ${activeCalls.size} calls...")
+
+            // Try conference method on first call
+            firstCall.conference(secondCall)
+            Log.i(TAG, "✓ Conference merge command sent")
+            RemoteLogger.i(applicationContext, TAG, "✓ Conference merge initiated")
+            StatusManager.log("✓ Calls merged into conference!")
+            return true
+        } catch (e: Exception) {
+            Log.e(TAG, "Merge failed: ${e.message}", e)
+            RemoteLogger.e(applicationContext, TAG, "Merge failed: ${e.message}")
+
+            // Try alternative: swap calls to bring both active
+            try {
+                activeCalls.forEach { call ->
+                    if (call.state == Call.STATE_HOLDING) {
+                        call.unhold()
+                    }
+                }
+                StatusManager.log("Unhold attempted - try manual merge")
+            } catch (e2: Exception) {
+                Log.e(TAG, "Unhold also failed: ${e2.message}")
+            }
+            return false
         }
     }
 

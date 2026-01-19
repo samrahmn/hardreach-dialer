@@ -213,29 +213,33 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // Check exact alarm permission on Android 12+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val alarmManager = getSystemService(android.app.AlarmManager::class.java)
-            if (!alarmManager.canScheduleExactAlarms()) {
-                Toast.makeText(this, "Exact alarm permission required", Toast.LENGTH_LONG).show()
-                // Request permission
-                val intent = Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-                startActivity(intent)
-                serviceSwitch.isChecked = false
-                return
-            }
+        // Save enabled state
+        val prefs = getSharedPreferences("hardreach_dialer", MODE_PRIVATE)
+        prefs.edit().putBoolean("service_enabled", true).apply()
+
+        // Start foreground service for reliable background polling
+        val serviceIntent = Intent(this, WebhookService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
         }
 
-        // Start alarm-based polling
+        // Also schedule AlarmManager as backup (in case service gets killed)
         AlarmScheduler.schedulePolling(this)
-        Toast.makeText(this, "Polling enabled via AlarmManager", Toast.LENGTH_SHORT).show()
+
+        Toast.makeText(this, "Polling enabled (Foreground Service + AlarmManager)", Toast.LENGTH_SHORT).show()
         updateUI()
     }
 
     private fun stopWebhookService() {
+        // Save disabled state
+        val prefs = getSharedPreferences("hardreach_dialer", MODE_PRIVATE)
+        prefs.edit().putBoolean("service_enabled", false).apply()
+
         // Cancel alarm-based polling
         AlarmScheduler.cancelPolling(this)
-        // Stop any running service instance
+        // Stop foreground service
         stopService(Intent(this, WebhookService::class.java))
         Toast.makeText(this, "Polling disabled", Toast.LENGTH_SHORT).show()
         updateUI()

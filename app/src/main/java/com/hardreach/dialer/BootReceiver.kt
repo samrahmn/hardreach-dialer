@@ -15,7 +15,18 @@ class BootReceiver : BroadcastReceiver() {
             val serviceEnabled = prefs.getBoolean("service_enabled", false)
 
             if (serviceEnabled) {
-                Log.i("BootReceiver", "Polling was enabled - scheduling alarms")
+                Log.i("BootReceiver", "Polling was enabled - starting foreground service")
+                RemoteLogger.i(context, "BootReceiver", "Boot completed - starting service")
+
+                // Start foreground service for reliable background polling
+                val serviceIntent = Intent(context, WebhookService::class.java)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(serviceIntent)
+                } else {
+                    context.startService(serviceIntent)
+                }
+
+                // Also schedule AlarmManager as backup
                 AlarmScheduler.schedulePolling(context)
             }
         }

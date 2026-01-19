@@ -87,8 +87,8 @@
         <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:theme="@style/AppTheme"
-            android:label="Settings" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:label="Hardreach Dialer" />
 
 
         <!-- In-Call UI Activity -->

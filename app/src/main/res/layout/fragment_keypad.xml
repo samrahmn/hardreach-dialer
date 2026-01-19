@@ -37,9 +37,9 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_input_delete"
             android:contentDescription="Delete"
-            android:tint="@color/text_secondary"
+            android:tint="@color/text_primary"
             android:scaleType="centerInside"
-            android:padding="12dp" />
+            android:padding="8dp" />
     </LinearLayout>
 
     <!-- Spacer -->

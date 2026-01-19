@@ -7,18 +7,27 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.telecom.TelecomManager
-import android.widget.Button
+import android.view.View
 import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 
 class DialerActivity : AppCompatActivity() {
 
-    private lateinit var navKeypad: Button
-    private lateinit var navRecents: Button
-    private lateinit var navContacts: Button
+    private lateinit var navKeypad: View
+    private lateinit var navRecents: View
+    private lateinit var navContacts: View
     private lateinit var btnSettings: ImageButton
+
+    private lateinit var navKeypadIcon: ImageView
+    private lateinit var navKeypadText: TextView
+    private lateinit var navRecentsIcon: ImageView
+    private lateinit var navRecentsText: TextView
+    private lateinit var navContactsIcon: ImageView
+    private lateinit var navContactsText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,16 +44,26 @@ class DialerActivity : AppCompatActivity() {
         navContacts = findViewById(R.id.nav_contacts)
         btnSettings = findViewById(R.id.btn_settings)
 
+        navKeypadIcon = findViewById(R.id.nav_keypad_icon)
+        navKeypadText = findViewById(R.id.nav_keypad_text)
+        navRecentsIcon = findViewById(R.id.nav_recents_icon)
+        navRecentsText = findViewById(R.id.nav_recents_text)
+        navContactsIcon = findViewById(R.id.nav_contacts_icon)
+        navContactsText = findViewById(R.id.nav_contacts_text)
+
         navKeypad.setOnClickListener {
             showFragment(KeypadFragment())
+            selectTab(0)
         }
 
         navRecents.setOnClickListener {
             showFragment(RecentsFragment())
+            selectTab(1)
         }
 
         navContacts.setOnClickListener {
             showFragment(ContactsFragment())
+            selectTab(2)
         }
 
         btnSettings.setOnClickListener {
@@ -53,6 +72,36 @@ class DialerActivity : AppCompatActivity() {
 
         if (savedInstanceState == null) {
             showFragment(KeypadFragment())
+            selectTab(0)
+        }
+    }
+
+    private fun selectTab(index: Int) {
+        val primaryColor = getColor(R.color.primary)
+        val secondaryColor = getColor(R.color.text_secondary)
+
+        // Reset all tabs
+        navKeypadIcon.setColorFilter(secondaryColor)
+        navKeypadText.setTextColor(secondaryColor)
+        navRecentsIcon.setColorFilter(secondaryColor)
+        navRecentsText.setTextColor(secondaryColor)
+        navContactsIcon.setColorFilter(secondaryColor)
+        navContactsText.setTextColor(secondaryColor)
+
+        // Highlight selected tab
+        when (index) {
+            0 -> {
+                navKeypadIcon.setColorFilter(primaryColor)
+                navKeypadText.setTextColor(primaryColor)
+            }
+            1 -> {
+                navRecentsIcon.setColorFilter(primaryColor)
+                navRecentsText.setTextColor(primaryColor)
+            }
+            2 -> {
+                navContactsIcon.setColorFilter(primaryColor)
+                navContactsText.setTextColor(primaryColor)
+            }
         }
     }
 

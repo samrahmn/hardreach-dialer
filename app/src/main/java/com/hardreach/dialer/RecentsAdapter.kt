@@ -14,7 +14,8 @@ data class RecentCall(
     val number: String,
     val name: String?,
     val date: Long,
-    val type: Int
+    val type: Int,
+    val duration: Long = 0
 )
 
 class RecentsAdapter(
@@ -27,6 +28,7 @@ class RecentsAdapter(
         val contactName: TextView = view.findViewById(R.id.contact_name)
         val phoneNumber: TextView = view.findViewById(R.id.phone_number)
         val callTime: TextView = view.findViewById(R.id.call_time)
+        val callDuration: TextView = view.findViewById(R.id.call_duration)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -39,14 +41,25 @@ class RecentsAdapter(
         val call = calls[position]
         val dateFormat = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
 
-        // Set call type icon tint based on type
-        val iconTint = when (call.type) {
-            CallLog.Calls.INCOMING_TYPE -> android.graphics.Color.parseColor("#4CAF50")
-            CallLog.Calls.OUTGOING_TYPE -> android.graphics.Color.parseColor("#2196F3")
-            CallLog.Calls.MISSED_TYPE -> android.graphics.Color.parseColor("#F44336")
-            else -> android.graphics.Color.parseColor("#757575")
+        // Set call type icon tint and background based on type
+        when (call.type) {
+            CallLog.Calls.INCOMING_TYPE -> {
+                holder.callTypeIcon.setColorFilter(android.graphics.Color.parseColor("#4CAF50"))
+                holder.callTypeIcon.setBackgroundResource(R.drawable.bg_call_incoming)
+            }
+            CallLog.Calls.OUTGOING_TYPE -> {
+                holder.callTypeIcon.setColorFilter(android.graphics.Color.parseColor("#1A73E8"))
+                holder.callTypeIcon.setBackgroundResource(R.drawable.bg_call_outgoing)
+            }
+            CallLog.Calls.MISSED_TYPE -> {
+                holder.callTypeIcon.setColorFilter(android.graphics.Color.parseColor("#EA4335"))
+                holder.callTypeIcon.setBackgroundResource(R.drawable.bg_call_missed)
+            }
+            else -> {
+                holder.callTypeIcon.setColorFilter(android.graphics.Color.parseColor("#5F6368"))
+                holder.callTypeIcon.setBackgroundResource(R.drawable.bg_icon_circle)
+            }
         }
-        holder.callTypeIcon.setColorFilter(iconTint)
 
         // Set contact name
         holder.contactName.text = call.name ?: call.number
@@ -56,6 +69,22 @@ class RecentsAdapter(
 
         // Set call time
         holder.callTime.text = dateFormat.format(Date(call.date))
+
+        // Set call duration
+        if (call.duration > 0) {
+            val minutes = call.duration / 60
+            val seconds = call.duration % 60
+            holder.callDuration.text = if (minutes > 0) "${minutes}m ${seconds}s" else "${seconds}s"
+            holder.callDuration.visibility = View.VISIBLE
+        } else {
+            // Missed calls have no duration
+            if (call.type == CallLog.Calls.MISSED_TYPE) {
+                holder.callDuration.text = "Missed"
+                holder.callDuration.setTextColor(android.graphics.Color.parseColor("#EA4335"))
+            } else {
+                holder.callDuration.visibility = View.GONE
+            }
+        }
 
         // Set click listener on whole item
         holder.itemView.setOnClickListener {

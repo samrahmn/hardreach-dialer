@@ -66,7 +66,8 @@ class RecentsFragment : Fragment() {
                 CallLog.Calls.NUMBER,
                 CallLog.Calls.CACHED_NAME,
                 CallLog.Calls.DATE,
-                CallLog.Calls.TYPE
+                CallLog.Calls.TYPE,
+                CallLog.Calls.DURATION
             ),
             null,
             null,
@@ -80,8 +81,9 @@ class RecentsFragment : Fragment() {
                 val name = it.getString(1)
                 val date = it.getLong(2)
                 val type = it.getInt(3)
+                val duration = it.getLong(4)
 
-                calls.add(RecentCall(number, name, date, type))
+                calls.add(RecentCall(number, name, date, type, duration))
                 count++
             }
         }

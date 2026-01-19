@@ -15,16 +15,16 @@
         <EditText
             android:id="@+id/search_box"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="48dp"
             android:hint="Search contacts..."
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
             android:textSize="16sp"
             android:textColor="@color/text_primary"
             android:textColorHint="@color/text_hint"
-            android:background="@drawable/dialpad_button_pill"
+            android:background="@drawable/search_bar_background"
             android:inputType="textPersonName|textCapWords"
-            android:drawableLeft="@android:drawable/ic_menu_search"
+            android:drawableStart="@android:drawable/ic_menu_search"
             android:drawablePadding="12dp"
             android:drawableTint="@color/text_secondary" />
     </LinearLayout>

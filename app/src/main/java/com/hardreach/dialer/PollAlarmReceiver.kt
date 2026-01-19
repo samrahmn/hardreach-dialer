@@ -107,17 +107,28 @@ class PollAlarmReceiver : BroadcastReceiver() {
                 val teamMemberNumber = call.getString("team_member_number")
                 val contactNumber = call.getString("contact_number")
 
-                Log.i(TAG, "Found pending call ID $callId - launching confirmation")
-                RemoteLogger.i(context, TAG, "Found call #$callId - showing confirmation")
+                val autoAccept = prefs.getBoolean("auto_accept", false)
 
-                // Launch confirmation dialog
-                val confirmIntent = Intent(context, ConfirmCallActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    putExtra("call_id", callId)
-                    putExtra("team_member_number", teamMemberNumber)
-                    putExtra("contact_number", contactNumber)
+                if (autoAccept) {
+                    // Auto-accept: directly initiate call
+                    Log.i(TAG, "Found pending call ID $callId - AUTO-ACCEPTING")
+                    RemoteLogger.i(context, TAG, "Found call #$callId - auto-accepting")
+
+                    val callManager = CallManager(context)
+                    callManager.initiateConferenceCall(callId, teamMemberNumber, contactNumber)
+                } else {
+                    // Show confirmation dialog
+                    Log.i(TAG, "Found pending call ID $callId - launching confirmation")
+                    RemoteLogger.i(context, TAG, "Found call #$callId - showing confirmation")
+
+                    val confirmIntent = Intent(context, ConfirmCallActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        putExtra("call_id", callId)
+                        putExtra("team_member_number", teamMemberNumber)
+                        putExtra("contact_number", contactNumber)
+                    }
+                    context.startActivity(confirmIntent)
                 }
-                context.startActivity(confirmIntent)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Polling exception: ${e.message}", e)

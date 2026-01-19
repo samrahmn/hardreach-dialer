@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var serverUrlInput: EditText
     private lateinit var apiKeyInput: EditText
     private lateinit var serviceSwitch: Switch
+    private lateinit var autoAcceptSwitch: Switch
     private lateinit var saveButton: Button
     private lateinit var testPollButton: Button
     private lateinit var requestDefaultDialerButton: Button
@@ -131,12 +132,19 @@ class MainActivity : AppCompatActivity() {
         liveStatusText = findViewById(R.id.live_status_text)
         logText = findViewById(R.id.log_text)
 
+        autoAcceptSwitch = findViewById(R.id.auto_accept_switch)
+
         saveButton.setOnClickListener { saveSettings() }
         testPollButton.setOnClickListener { testPoll() }
         requestDefaultDialerButton.setOnClickListener { requestDefaultDialer() }
         batteryOptimizationButton.setOnClickListener { requestBatteryOptimization() }
         serviceSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) startWebhookService() else stopWebhookService()
+        }
+        autoAcceptSwitch.setOnCheckedChangeListener { _, isChecked ->
+            val prefs = getSharedPreferences("hardreach_dialer", MODE_PRIVATE)
+            prefs.edit().putBoolean("auto_accept", isChecked).apply()
+            Toast.makeText(this, if (isChecked) "Auto-accept enabled" else "Auto-accept disabled", Toast.LENGTH_SHORT).show()
         }
 
         // Initialize with default status
@@ -192,6 +200,7 @@ class MainActivity : AppCompatActivity() {
         serverUrlInput.setText(prefs.getString("server_url", "https://grow.hardreach.com"))
         apiKeyInput.setText(prefs.getString("api_key", ""))
         serviceSwitch.isChecked = prefs.getBoolean("service_enabled", false)
+        autoAcceptSwitch.isChecked = prefs.getBoolean("auto_accept", false)
     }
     
     private fun saveSettings() {

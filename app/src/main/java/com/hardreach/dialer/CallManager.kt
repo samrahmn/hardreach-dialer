@@ -189,18 +189,30 @@ class CallManager(private val context: Context) {
     }
 
     /**
-     * Make outgoing call - system will use SIM automatically
+     * Make outgoing call using TelecomManager.placeCall()
+     * This properly routes to system telephony without going through our DialerActivity
      * InCallService will receive events because we're the default dialer
      */
     private fun makeCall(phoneNumber: String) {
         try {
-            val intent = Intent(Intent.ACTION_CALL).apply {
-                data = Uri.parse("tel:$phoneNumber")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+            val uri = Uri.fromParts("tel", phoneNumber, null)
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                telecomManager.placeCall(uri, null)
+                Log.i(TAG, "→ Call placed via TelecomManager to $phoneNumber")
+                RemoteLogger.i(context, TAG, "→ Call placed via TelecomManager to $phoneNumber")
+            } else {
+                // Fallback for older Android - use explicit system dialer intent
+                val intent = Intent(Intent.ACTION_CALL).apply {
+                    data = Uri.parse("tel:$phoneNumber")
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    setPackage("com.android.phone")
+                }
+                context.startActivity(intent)
+                Log.i(TAG, "→ Call initiated via intent to $phoneNumber")
+                RemoteLogger.i(context, TAG, "→ Call initiated via intent to $phoneNumber")
             }
-            context.startActivity(intent)
-            Log.i(TAG, "→ Call initiated to $phoneNumber")
-            RemoteLogger.i(context, TAG, "→ Call initiated to $phoneNumber")
         } catch (e: Exception) {
             Log.e(TAG, "✗ Failed to make call: ${e.message}")
             RemoteLogger.e(context, TAG, "✗ Failed to make call: ${e.message}")

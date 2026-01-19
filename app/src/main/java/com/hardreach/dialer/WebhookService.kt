@@ -25,6 +25,7 @@ class WebhookService : Service() {
         private const val CHANNEL_ID = "webhook_service"
         private const val NOTIFICATION_ID = 1
         private const val POLL_INTERVAL = 15000L // 15 seconds
+        private var pollCount = 0
     }
     
     private val TAG = "WebhookService"
@@ -47,25 +48,35 @@ class WebhookService : Service() {
     
     override fun onCreate() {
         super.onCreate()
-        
+
         try {
             callManager = CallManager(this)
             createNotificationChannel()
             startForeground(NOTIFICATION_ID, createNotification())
-            
+
+            // Acquire wake lock immediately
+            val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+            wakeLock = powerManager.newWakeLock(
+                PowerManager.PARTIAL_WAKE_LOCK,
+                "HardreachDialer::WebhookServiceWakeLock"
+            )
+            wakeLock.acquire()
+
             // Create background thread for polling
             handlerThread = HandlerThread("WebhookServiceThread")
             handlerThread.start()
             handler = Handler(handlerThread.looper)
-            
+
             isRunning = true
-            
+
             // Start polling on background thread
             handler.post(pollRunnable)
-            
+
             Log.i(TAG, "Service started - polling every ${POLL_INTERVAL/1000}s")
+            RemoteLogger.i(applicationContext, TAG, "✓ Foreground service STARTED - polling every 15s")
         } catch (e: Exception) {
             Log.e(TAG, "Service creation failed: ${e.message}", e)
+            RemoteLogger.e(applicationContext, TAG, "Service creation FAILED: ${e.message}")
         }
     }
     
@@ -162,8 +173,11 @@ class WebhookService : Service() {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 "Hardreach Dialer Service",
-                NotificationManager.IMPORTANCE_LOW
-            )
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = "Keeps the dialer active in background"
+                setShowBadge(false)
+            }
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
         }
@@ -190,6 +204,13 @@ class WebhookService : Service() {
     }
     
     private fun pollForCalls() {
+        pollCount++
+
+        // Log heartbeat every minute (every 4 polls)
+        if (pollCount % 4 == 0) {
+            RemoteLogger.i(applicationContext, TAG, "♥ Service alive - poll #$pollCount")
+        }
+
         val prefs = getSharedPreferences("hardreach_dialer", Context.MODE_PRIVATE)
         val serverUrl = prefs.getString("server_url", "")?.trim() ?: ""
         val apiKey = prefs.getString("api_key", "")?.replace("\\s".toRegex(), "") ?: ""
@@ -198,7 +219,7 @@ class WebhookService : Service() {
             Log.w(TAG, "Server URL or API key not configured")
             return
         }
-        
+
         Log.d(TAG, "Polling $serverUrl/api/dialer/pending-calls")
         
         val request = Request.Builder()

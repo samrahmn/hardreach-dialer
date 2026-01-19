@@ -33,8 +33,8 @@ class RecentsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        recyclerView = view.findViewById(R.id.recents_recycler_view)
-        emptyView = view.findViewById(R.id.empty_view)
+        recyclerView = view.findViewById(R.id.recents_list)
+        emptyView = view.findViewById(R.id.empty_state)
 
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 

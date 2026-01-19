@@ -4,7 +4,7 @@ import android.provider.CallLog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import java.text.SimpleDateFormat
@@ -23,10 +23,10 @@ class RecentsAdapter(
 ) : RecyclerView.Adapter<RecentsAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val callTypeIcon: TextView = view.findViewById(R.id.call_type_icon)
+        val callTypeIcon: ImageView = view.findViewById(R.id.call_type_icon)
         val contactName: TextView = view.findViewById(R.id.contact_name)
-        val callDetails: TextView = view.findViewById(R.id.call_details)
-        val btnCall: ImageButton = view.findViewById(R.id.btn_call)
+        val phoneNumber: TextView = view.findViewById(R.id.phone_number)
+        val callTime: TextView = view.findViewById(R.id.call_time)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -39,26 +39,26 @@ class RecentsAdapter(
         val call = calls[position]
         val dateFormat = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
 
-        // Set call type icon
-        holder.callTypeIcon.text = when (call.type) {
-            CallLog.Calls.INCOMING_TYPE -> "📞"
-            CallLog.Calls.OUTGOING_TYPE -> "📲"
-            CallLog.Calls.MISSED_TYPE -> "📵"
-            else -> "📞"
+        // Set call type icon tint based on type
+        val iconTint = when (call.type) {
+            CallLog.Calls.INCOMING_TYPE -> android.graphics.Color.parseColor("#4CAF50")
+            CallLog.Calls.OUTGOING_TYPE -> android.graphics.Color.parseColor("#2196F3")
+            CallLog.Calls.MISSED_TYPE -> android.graphics.Color.parseColor("#F44336")
+            else -> android.graphics.Color.parseColor("#757575")
         }
+        holder.callTypeIcon.setColorFilter(iconTint)
 
         // Set contact name
         holder.contactName.text = call.name ?: call.number
 
-        // Set call details
-        holder.callDetails.text = "${call.number} • ${dateFormat.format(Date(call.date))}"
+        // Set phone number
+        holder.phoneNumber.text = call.number
 
-        // Set click listeners
+        // Set call time
+        holder.callTime.text = dateFormat.format(Date(call.date))
+
+        // Set click listener on whole item
         holder.itemView.setOnClickListener {
-            onCallClick(call.number)
-        }
-
-        holder.btnCall.setOnClickListener {
             onCallClick(call.number)
         }
     }

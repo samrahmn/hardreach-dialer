@@ -16,6 +16,7 @@ import org.json.JSONObject
 /**
  * Call manager that waits for actual call connection before placing second call
  * Uses InCallService callbacks for reliable state detection
+ * Supports step-by-step confirmation when auto-accept is disabled
  */
 class CallManager(private val context: Context) {
 
@@ -30,58 +31,98 @@ class CallManager(private val context: Context) {
     private val MERGE_DELAY = 3000L          // 3s before merge attempt
 
     private var currentCallId: Int? = null
+    private var pendingTeamNumber: String? = null
     private var pendingContactNumber: String? = null
     private var callStartTime = 0L
     private var timeoutRunnable: Runnable? = null
+    private var autoAcceptMode = true
 
     /**
      * Conference call flow with actual connection detection:
-     * 1. Call team member
+     * 1. Call team member (with confirmation if auto-accept OFF)
      * 2. Wait for InCallService callback (STATE_ACTIVE) = call connected
-     * 3. Once connected: call prospect
+     * 3. Once connected: call prospect (with confirmation if auto-accept OFF)
      * 4. Wait for second call to connect
-     * 5. Attempt merge
+     * 5. Attempt merge (with confirmation if auto-accept OFF)
      * 6. Mark as completed
      */
     fun initiateConferenceCall(callId: Int, teamMemberNumber: String, contactNumber: String) {
+        // Check auto-accept preference
+        val prefs = context.getSharedPreferences("hardreach_dialer", Context.MODE_PRIVATE)
+        autoAcceptMode = prefs.getBoolean("auto_accept", false)
+
         RemoteLogger.i(context, TAG, "=== Conference Call Started ===")
         RemoteLogger.i(context, TAG, "Call ID: $callId | Team: $teamMemberNumber | Prospect: $contactNumber")
+        RemoteLogger.i(context, TAG, "Auto-accept mode: $autoAcceptMode")
         Log.i(TAG, "=== Connection-Based Conference Call ===")
         Log.i(TAG, "Call ID: $callId")
         Log.i(TAG, "Team Member: $teamMemberNumber")
         Log.i(TAG, "Prospect: $contactNumber")
-        Log.i(TAG, "Mode: Wait for actual connection (InCallService callbacks)")
+        Log.i(TAG, "Auto-accept: $autoAcceptMode")
 
         currentCallId = callId
+        pendingTeamNumber = teamMemberNumber
         pendingContactNumber = contactNumber
         callStartTime = System.currentTimeMillis()
 
-        // Reset InCallService state
+        // Reset states
         HardreachInCallService.reset()
+        ConfirmCallActivity.reset()
 
+        if (autoAcceptMode) {
+            // Auto-accept: proceed directly
+            startFirstCall(callId, teamMemberNumber, contactNumber)
+        } else {
+            // Manual mode: show confirmation for first call
+            showFirstCallConfirmation(callId, teamMemberNumber, contactNumber)
+        }
+    }
+
+    private fun showFirstCallConfirmation(callId: Int, teamMemberNumber: String, contactNumber: String) {
+        ConfirmCallActivity.onFirstCallAccepted = {
+            startFirstCall(callId, teamMemberNumber, contactNumber)
+        }
+        ConfirmCallActivity.onDeclined = {
+            cleanup()
+        }
+
+        val intent = Intent(context, ConfirmCallActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("call_id", callId)
+            putExtra("team_member_number", teamMemberNumber)
+            putExtra("contact_number", contactNumber)
+            putExtra("step", ConfirmCallActivity.STEP_FIRST_CALL)
+        }
+        context.startActivity(intent)
+    }
+
+    private fun startFirstCall(callId: Int, teamMemberNumber: String, contactNumber: String) {
         // Setup callback for when first call connects
         HardreachInCallService.onFirstCallConnected = {
             Log.i(TAG, "✓✓ First call connected callback received!")
-            RemoteLogger.i(context, TAG, "✓✓ First call connected - now calling prospect")
-            StatusManager.log("✓ Team member answered - calling prospect...")
+            RemoteLogger.i(context, TAG, "✓✓ First call connected")
+            StatusManager.log("✓ Team member answered")
 
             // Cancel timeout
             timeoutRunnable?.let { handler.removeCallbacks(it) }
 
-            // Call prospect now that first call is connected
+            // Proceed to second call (with or without confirmation)
             handler.postDelayed({
-                callProspect(callId, contactNumber)
-            }, 1000) // Small delay before second call
+                if (autoAcceptMode) {
+                    callProspect(callId, contactNumber)
+                } else {
+                    showSecondCallConfirmation(callId, contactNumber)
+                }
+            }, 1000)
         }
 
         // Step 1: Call team member
         StatusManager.callStarted(teamMemberNumber)
         StatusManager.log("Calling team member: $teamMemberNumber")
-        StatusManager.log("Waiting for them to answer...")
         makeCall(teamMemberNumber)
 
-        RemoteLogger.i(context, TAG, "Step 1: Calling team member - waiting for connection...")
-        Log.i(TAG, "Step 1: Calling team member - waiting for connection callback...")
+        RemoteLogger.i(context, TAG, "Step 1: Calling team member...")
+        Log.i(TAG, "Step 1: Calling team member...")
 
         // Timeout if first call doesn't connect within 60 seconds
         timeoutRunnable = Runnable {
@@ -104,6 +145,26 @@ class CallManager(private val context: Context) {
             }
             cleanup()
         }, 180000)
+    }
+
+    private fun showSecondCallConfirmation(callId: Int, contactNumber: String) {
+        ConfirmCallActivity.onSecondCallAccepted = {
+            callProspect(callId, contactNumber)
+        }
+        ConfirmCallActivity.onDeclined = {
+            // End first call and cleanup
+            updateCallStatus(callId, "failed")
+            cleanup()
+        }
+
+        val intent = Intent(context, ConfirmCallActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("call_id", callId)
+            putExtra("team_member_number", pendingTeamNumber)
+            putExtra("contact_number", contactNumber)
+            putExtra("step", ConfirmCallActivity.STEP_SECOND_CALL)
+        }
+        context.startActivity(intent)
     }
 
     /**
@@ -173,10 +234,41 @@ class CallManager(private val context: Context) {
      * Attempt merge and mark as completed
      */
     private fun attemptMergeAndComplete(callId: Int) {
-        StatusManager.log("Both calls active - attempting merge...")
+        StatusManager.log("Both calls active - ready to merge")
 
+        if (autoAcceptMode) {
+            // Auto-merge
+            performMerge(callId)
+        } else {
+            // Show merge confirmation
+            showMergeConfirmation(callId)
+        }
+    }
+
+    private fun showMergeConfirmation(callId: Int) {
+        ConfirmCallActivity.onMergeAccepted = {
+            performMerge(callId)
+        }
+        ConfirmCallActivity.onDeclined = {
+            // Don't merge, but still mark as completed (calls are active)
+            updateCallStatus(callId, "completed")
+            StatusManager.log("Merge declined - calls remain separate")
+            cleanup()
+        }
+
+        val intent = Intent(context, ConfirmCallActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("call_id", callId)
+            putExtra("team_member_number", pendingTeamNumber)
+            putExtra("contact_number", pendingContactNumber)
+            putExtra("step", ConfirmCallActivity.STEP_MERGE)
+        }
+        context.startActivity(intent)
+    }
+
+    private fun performMerge(callId: Int) {
+        StatusManager.mergingCalls()
         handler.postDelayed({
-            StatusManager.mergingCalls()
             mergeCallsToConference()
 
             // Mark as completed

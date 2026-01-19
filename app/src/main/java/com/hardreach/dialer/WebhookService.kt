@@ -253,27 +253,12 @@ class WebhookService : Service() {
                 val teamMemberNumber = call.getString("team_member_number")
                 val contactNumber = call.getString("contact_number")
 
-                val autoAccept = prefs.getBoolean("auto_accept", false)
-
                 Log.i(TAG, "Found pending call ID $callId: $teamMemberNumber -> $contactNumber")
+                StatusManager.log("Found pending call #$callId - starting conference flow")
+                RemoteLogger.i(applicationContext, TAG, "Found call #$callId - starting conference flow")
 
-                if (autoAccept) {
-                    // Auto-accept: directly initiate call
-                    StatusManager.log("Found pending call #$callId - auto-accepting")
-                    RemoteLogger.i(applicationContext, TAG, "Found call #$callId - auto-accepting")
-                    callManager.initiateConferenceCall(callId, teamMemberNumber, contactNumber)
-                } else {
-                    // Show confirmation dialog
-                    StatusManager.log("Found pending call #$callId - showing confirmation")
-
-                    val confirmIntent = Intent(applicationContext, ConfirmCallActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                        putExtra("call_id", callId)
-                        putExtra("team_member_number", teamMemberNumber)
-                        putExtra("contact_number", contactNumber)
-                    }
-                    applicationContext.startActivity(confirmIntent)
-                }
+                // CallManager handles auto-accept check and shows confirmations as needed
+                callManager.initiateConferenceCall(callId, teamMemberNumber, contactNumber)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Polling exception: ${e.message}", e)

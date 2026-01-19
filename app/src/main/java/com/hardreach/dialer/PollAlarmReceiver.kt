@@ -107,28 +107,12 @@ class PollAlarmReceiver : BroadcastReceiver() {
                 val teamMemberNumber = call.getString("team_member_number")
                 val contactNumber = call.getString("contact_number")
 
-                val autoAccept = prefs.getBoolean("auto_accept", false)
+                Log.i(TAG, "Found pending call ID $callId - initiating conference")
+                RemoteLogger.i(context, TAG, "Found call #$callId - starting conference flow")
 
-                if (autoAccept) {
-                    // Auto-accept: directly initiate call
-                    Log.i(TAG, "Found pending call ID $callId - AUTO-ACCEPTING")
-                    RemoteLogger.i(context, TAG, "Found call #$callId - auto-accepting")
-
-                    val callManager = CallManager(context)
-                    callManager.initiateConferenceCall(callId, teamMemberNumber, contactNumber)
-                } else {
-                    // Show confirmation dialog
-                    Log.i(TAG, "Found pending call ID $callId - launching confirmation")
-                    RemoteLogger.i(context, TAG, "Found call #$callId - showing confirmation")
-
-                    val confirmIntent = Intent(context, ConfirmCallActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                        putExtra("call_id", callId)
-                        putExtra("team_member_number", teamMemberNumber)
-                        putExtra("contact_number", contactNumber)
-                    }
-                    context.startActivity(confirmIntent)
-                }
+                // CallManager handles auto-accept check and shows confirmations as needed
+                val callManager = CallManager(context)
+                callManager.initiateConferenceCall(callId, teamMemberNumber, contactNumber)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Polling exception: ${e.message}", e)

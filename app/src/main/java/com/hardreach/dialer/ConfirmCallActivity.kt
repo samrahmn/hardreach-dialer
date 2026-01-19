@@ -15,10 +15,29 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
 /**
- * Confirmation dialog before initiating conference calls
- * Prevents accidental auto-dialing
+ * Confirmation dialog for conference call steps
+ * Supports: FIRST_CALL, SECOND_CALL, MERGE
  */
 class ConfirmCallActivity : AppCompatActivity() {
+
+    companion object {
+        const val STEP_FIRST_CALL = "first_call"
+        const val STEP_SECOND_CALL = "second_call"
+        const val STEP_MERGE = "merge"
+
+        // Callbacks for step completion
+        var onFirstCallAccepted: (() -> Unit)? = null
+        var onSecondCallAccepted: (() -> Unit)? = null
+        var onMergeAccepted: (() -> Unit)? = null
+        var onDeclined: (() -> Unit)? = null
+
+        fun reset() {
+            onFirstCallAccepted = null
+            onSecondCallAccepted = null
+            onMergeAccepted = null
+            onDeclined = null
+        }
+    }
 
     private val TAG = "ConfirmCallActivity"
     private val client = OkHttpClient()
@@ -30,9 +49,10 @@ class ConfirmCallActivity : AppCompatActivity() {
     private var callId: Int = -1
     private var teamMemberNumber: String = ""
     private var contactNumber: String = ""
+    private var step: String = STEP_FIRST_CALL
 
     private val autoDeclineRunnable = Runnable {
-        Log.i(TAG, "Auto-declining call after timeout")
+        Log.i(TAG, "Auto-declining after timeout")
         declineCall()
     }
 
@@ -44,23 +64,35 @@ class ConfirmCallActivity : AppCompatActivity() {
         callId = intent.getIntExtra("call_id", -1)
         teamMemberNumber = intent.getStringExtra("team_member_number") ?: ""
         contactNumber = intent.getStringExtra("contact_number") ?: ""
+        step = intent.getStringExtra("step") ?: STEP_FIRST_CALL
 
-        if (callId == -1 || contactNumber.isEmpty()) {
-            Log.e(TAG, "Invalid call details")
-            finish()
-            return
-        }
-
-        // Setup UI
+        // Setup UI based on step
+        val titleText = findViewById<TextView>(R.id.confirmTitleText)
         val contactText = findViewById<TextView>(R.id.contactNumberText)
         val acceptButton = findViewById<Button>(R.id.acceptCallButton)
         val declineButton = findViewById<Button>(R.id.declineCallButton)
 
-        contactText.text = "Call $contactNumber?"
+        when (step) {
+            STEP_FIRST_CALL -> {
+                titleText.text = "Call Team Member?"
+                contactText.text = teamMemberNumber
+                acceptButton.text = "Call"
+            }
+            STEP_SECOND_CALL -> {
+                titleText.text = "Call Prospect?"
+                contactText.text = contactNumber
+                acceptButton.text = "Call"
+            }
+            STEP_MERGE -> {
+                titleText.text = "Merge Calls?"
+                contactText.text = "Connect both parties"
+                acceptButton.text = "Merge"
+            }
+        }
 
         acceptButton.setOnClickListener {
             handler.removeCallbacks(autoDeclineRunnable)
-            acceptCall()
+            acceptStep()
         }
 
         declineButton.setOnClickListener {
@@ -71,8 +103,8 @@ class ConfirmCallActivity : AppCompatActivity() {
         // Start auto-decline timer
         handler.postDelayed(autoDeclineRunnable, AUTO_DECLINE_TIMEOUT)
 
-        Log.i(TAG, "Showing confirmation for call #$callId to $contactNumber")
-        RemoteLogger.i(this, TAG, "Confirmation dialog shown for call #$callId")
+        Log.i(TAG, "Showing confirmation for step: $step")
+        RemoteLogger.i(this, TAG, "Confirmation dialog shown for call #$callId - step: $step")
     }
 
     override fun onDestroy() {
@@ -80,24 +112,35 @@ class ConfirmCallActivity : AppCompatActivity() {
         handler.removeCallbacks(autoDeclineRunnable)
     }
 
-    private fun acceptCall() {
-        Log.i(TAG, "User accepted call #$callId")
-        RemoteLogger.i(this, TAG, "User ACCEPTED call #$callId - initiating conference")
+    private fun acceptStep() {
+        Log.i(TAG, "User accepted step: $step")
+        RemoteLogger.i(this, TAG, "User ACCEPTED step: $step")
 
-        // Start the actual call via CallManager
-        val callManager = CallManager(this)
-        callManager.initiateConferenceCall(callId, teamMemberNumber, contactNumber)
+        when (step) {
+            STEP_FIRST_CALL -> {
+                onFirstCallAccepted?.invoke()
+            }
+            STEP_SECOND_CALL -> {
+                onSecondCallAccepted?.invoke()
+            }
+            STEP_MERGE -> {
+                onMergeAccepted?.invoke()
+            }
+        }
 
         finish()
     }
 
     private fun declineCall() {
-        Log.i(TAG, "User declined call #$callId")
-        RemoteLogger.i(this, TAG, "User DECLINED call #$callId")
+        Log.i(TAG, "User declined at step: $step")
+        RemoteLogger.i(this, TAG, "User DECLINED at step: $step")
 
         // Mark call as failed in database
-        updateCallStatus(callId, "failed")
+        if (callId != -1) {
+            updateCallStatus(callId, "failed")
+        }
 
+        onDeclined?.invoke()
         finish()
     }
 

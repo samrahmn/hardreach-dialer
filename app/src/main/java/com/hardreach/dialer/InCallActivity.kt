@@ -42,7 +42,7 @@ class InCallActivity : AppCompatActivity() {
     private lateinit var btnMergeContainer: LinearLayout
     private lateinit var btnMinimize: Button
 
-    private var isMuted = false
+    private var isMuted = true  // Auto-mute by default (prospect shouldn't hear third party)
     private var isSpeakerOn = false
     private var isOnHold = false
     private var isRecording = false
@@ -71,8 +71,18 @@ class InCallActivity : AppCompatActivity() {
         contactName.text = name
         callStatus.text = "Calling..."
 
+        // Auto-mute microphone by default (prospect shouldn't hear third party)
+        applyAutoMute()
+
         // Start call duration timer
         startCallDurationTimer()
+    }
+
+    private fun applyAutoMute() {
+        audioManager.isMicrophoneMute = true
+        isMuted = true
+        btnMute.backgroundTintList = android.content.res.ColorStateList.valueOf(0xFF2196F3.toInt())
+        labelMute.text = "Unmute"
     }
 
     private fun initializeViews() {

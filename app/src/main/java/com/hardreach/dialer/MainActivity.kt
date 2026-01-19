@@ -13,8 +13,11 @@ import android.provider.Settings
 import android.telecom.PhoneAccount
 import android.telecom.PhoneAccountHandle
 import android.telecom.TelecomManager
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
@@ -35,8 +38,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var autoAcceptSwitch: Switch
     private lateinit var saveButton: Button
     private lateinit var testPollButton: Button
-    private lateinit var requestDefaultDialerButton: Button
-    private lateinit var batteryOptimizationButton: Button
+    private lateinit var requestDefaultDialerButton: View
+    private lateinit var defaultDialerText: TextView
+    private lateinit var defaultDialerIcon: ImageView
+    private lateinit var batteryOptimizationButton: View
+    private lateinit var batteryText: TextView
+    private lateinit var batteryIcon: ImageView
     private lateinit var statusText: TextView
     private lateinit var liveStatusText: TextView
     private lateinit var logText: TextView
@@ -64,6 +71,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         updateUI()
         updateBatteryOptimizationStatus()
+        updateDefaultDialerStatus()
 
         // Auto-restart service if it was enabled but isn't running
         val prefs = getSharedPreferences("hardreach_dialer", MODE_PRIVATE)
@@ -93,8 +101,9 @@ class MainActivity : AppCompatActivity() {
             DEFAULT_DIALER_REQUEST_CODE -> {
                 val telecomManager = getSystemService(TelecomManager::class.java)
                 val isDefaultDialer = packageName == telecomManager?.defaultDialerPackage
+                updateDefaultDialerStatus()
                 if (isDefaultDialer) {
-                    Toast.makeText(this, "✅ Hardreach is now default dialer!", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Hardreach is now default dialer!", Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -127,7 +136,11 @@ class MainActivity : AppCompatActivity() {
         saveButton = findViewById(R.id.save_button)
         testPollButton = findViewById(R.id.test_poll_button)
         requestDefaultDialerButton = findViewById(R.id.request_default_dialer_button)
+        defaultDialerText = findViewById(R.id.default_dialer_text)
+        defaultDialerIcon = findViewById(R.id.default_dialer_icon)
         batteryOptimizationButton = findViewById(R.id.battery_optimization_button)
+        batteryText = findViewById(R.id.battery_text)
+        batteryIcon = findViewById(R.id.battery_icon)
         statusText = findViewById(R.id.status_text)
         liveStatusText = findViewById(R.id.live_status_text)
         logText = findViewById(R.id.log_text)
@@ -153,6 +166,7 @@ class MainActivity : AppCompatActivity() {
 
         // Check and update button states
         updateBatteryOptimizationStatus()
+        updateDefaultDialerStatus()
     }
     
     private fun testPoll() {
@@ -358,16 +372,31 @@ class MainActivity : AppCompatActivity() {
             val powerManager = getSystemService(PowerManager::class.java)
             val isIgnoring = powerManager?.isIgnoringBatteryOptimizations(packageName) ?: false
 
-            batteryOptimizationButton.text = if (isIgnoring) {
-                "Battery Unrestricted ✅"
+            if (isIgnoring) {
+                batteryText.text = "Battery optimization disabled"
+                batteryText.setTextColor(getColor(R.color.success))
+                batteryIcon.setColorFilter(getColor(R.color.success))
             } else {
-                "Disable Battery Optimization"
+                batteryText.text = "Disable battery optimization"
+                batteryText.setTextColor(getColor(R.color.text_primary))
+                batteryIcon.setColorFilter(getColor(R.color.text_secondary))
             }
+        }
+    }
 
-            batteryOptimizationButton.backgroundTintList = if (isIgnoring) {
-                android.content.res.ColorStateList.valueOf(getColor(R.color.accent))
+    private fun updateDefaultDialerStatus() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val telecomManager = getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+            val isDefaultDialer = packageName == telecomManager.defaultDialerPackage
+
+            if (isDefaultDialer) {
+                defaultDialerText.text = "Default dialer"
+                defaultDialerText.setTextColor(getColor(R.color.success))
+                defaultDialerIcon.setColorFilter(getColor(R.color.success))
             } else {
-                android.content.res.ColorStateList.valueOf(getColor(R.color.warning))
+                defaultDialerText.text = "Set as default dialer"
+                defaultDialerText.setTextColor(getColor(R.color.text_primary))
+                defaultDialerIcon.setColorFilter(getColor(R.color.text_secondary))
             }
         }
     }

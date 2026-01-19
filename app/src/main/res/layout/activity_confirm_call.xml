@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/surface_dark">
+    android:background="@color/background_light">
 
     <!-- Center Content -->
     <LinearLayout
@@ -13,12 +13,11 @@
         android:gravity="center"
         android:padding="32dp">
 
-        <!-- Warning Icon -->
-        <ImageView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:src="@android:drawable/ic_menu_call"
-            android:tint="@color/accent"
+        <!-- Call Icon -->
+        <View
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:background="@drawable/bg_avatar"
             android:layout_marginBottom="24dp" />
 
         <!-- Title -->
@@ -27,9 +26,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Incoming CRM Call"
-            android:textColor="@color/text_white"
+            android:textColor="@color/text_primary"
             android:textSize="24sp"
-            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
             android:layout_marginBottom="16dp" />
 
         <!-- Contact Number -->
@@ -39,15 +38,16 @@
             android:layout_height="wrap_content"
             android:text="Call +971 50 123 4567?"
             android:textColor="@color/text_secondary"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:layout_marginBottom="8dp" />
 
         <!-- Subtitle -->
         <TextView
+            android:id="@+id/subtitleText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="This will start a conference call"
-            android:textColor="@color/text_secondary"
+            android:textColor="@color/text_tertiary"
             android:textSize="14sp"
             android:layout_marginBottom="48dp" />
 
@@ -56,33 +56,34 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center">
+            android:gravity="center"
+            android:layout_marginHorizontal="16dp">
 
             <!-- Decline Button -->
             <Button
                 android:id="@+id/declineCallButton"
                 android:layout_width="0dp"
-                android:layout_height="64dp"
+                android:layout_height="56dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="8dp"
-                android:text="DECLINE"
+                android:text="Decline"
                 android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_white"
-                android:backgroundTint="@color/error" />
+                android:textAllCaps="false"
+                android:textColor="@color/call_red"
+                android:backgroundTint="@color/error_light" />
 
             <!-- Accept Button -->
             <Button
                 android:id="@+id/acceptCallButton"
                 android:layout_width="0dp"
-                android:layout_height="64dp"
+                android:layout_height="56dp"
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
-                android:text="ACCEPT"
+                android:text="Accept"
                 android:textSize="16sp"
-                android:textStyle="bold"
+                android:textAllCaps="false"
                 android:textColor="@color/text_white"
-                android:backgroundTint="@color/accent" />
+                android:backgroundTint="@color/call_green" />
 
         </LinearLayout>
 
@@ -91,7 +92,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Auto-declines in 30 seconds"
-            android:textColor="@color/text_secondary"
+            android:textColor="@color/text_hint"
             android:textSize="12sp"
             android:layout_marginTop="24dp" />
 

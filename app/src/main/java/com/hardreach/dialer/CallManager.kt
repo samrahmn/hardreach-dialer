@@ -30,6 +30,29 @@ class CallManager(private val context: Context) {
     private val SECOND_CALL_TIMEOUT = 60000L // 60s max wait for second call to connect
     private val MERGE_DELAY = 3000L          // 3s before merge attempt
 
+    // Track call IDs currently being processed to prevent duplicates
+    companion object {
+        private val processingCallIds = mutableSetOf<Int>()
+
+        @Synchronized
+        fun isProcessing(callId: Int): Boolean = processingCallIds.contains(callId)
+
+        @Synchronized
+        fun startProcessing(callId: Int): Boolean {
+            return if (processingCallIds.contains(callId)) {
+                false // Already processing
+            } else {
+                processingCallIds.add(callId)
+                true // Successfully started
+            }
+        }
+
+        @Synchronized
+        fun stopProcessing(callId: Int) {
+            processingCallIds.remove(callId)
+        }
+    }
+
     private var currentCallId: Int? = null
     private var pendingTeamNumber: String? = null
     private var pendingContactNumber: String? = null
@@ -47,6 +70,13 @@ class CallManager(private val context: Context) {
      * 6. Mark as completed
      */
     fun initiateConferenceCall(callId: Int, teamMemberNumber: String, contactNumber: String) {
+        // Prevent duplicate processing of the same call
+        if (!startProcessing(callId)) {
+            Log.w(TAG, "Call $callId already being processed - skipping duplicate")
+            RemoteLogger.w(context, TAG, "Call $callId already processing - skipping duplicate")
+            return
+        }
+
         // Check auto-accept preference
         val prefs = context.getSharedPreferences("hardreach_dialer", Context.MODE_PRIVATE)
         autoAcceptMode = prefs.getBoolean("auto_accept", false)
@@ -356,6 +386,8 @@ class CallManager(private val context: Context) {
             return
         }
 
+        // Release processing lock before nulling currentCallId
+        stopProcessing(callId)
         currentCallId = null
 
         Thread {
@@ -395,9 +427,13 @@ class CallManager(private val context: Context) {
     }
 
     private fun cleanup() {
+        // Release processing lock for this call ID
+        currentCallId?.let { stopProcessing(it) }
+
         handler.removeCallbacksAndMessages(null)
         currentCallId = null
         pendingContactNumber = null
+        pendingTeamNumber = null
         timeoutRunnable = null
         HardreachInCallService.reset()
         StatusManager.idle()

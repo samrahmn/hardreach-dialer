@@ -250,23 +250,58 @@ class InCallActivity : AppCompatActivity() {
         if (calls.size > 1) {
             activeCallsContainer.visibility = View.VISIBLE
 
-            calls.forEach { call ->
+            calls.forEachIndexed { index, call ->
+                // Get phone number from Call object
+                val phoneNum = try {
+                    val telecomCall = call as? android.telecom.Call
+                    telecomCall?.details?.handle?.schemeSpecificPart ?: "Unknown"
+                } catch (e: Exception) {
+                    "Unknown"
+                }
+
+                // Get contact name for this number
+                val contactName = getContactNameForNumber(phoneNum)
+
+                // Label: first call is usually team member, second is prospect
+                val label = if (index == 0) "Team Member" else "Prospect"
+                val labelColor = if (index == 0) 0xFF4CAF50.toInt() else 0xFF2196F3.toInt()
+
                 val callItem = LinearLayout(this).apply {
-                    orientation = LinearLayout.HORIZONTAL
+                    orientation = LinearLayout.VERTICAL
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                     ).apply {
-                        setMargins(0, 0, 0, 16)
+                        setMargins(0, 0, 0, 12)
                     }
-                    setPadding(16, 12, 16, 12)
-                    setBackgroundColor(0xFF333333.toInt())
+                    setPadding(20, 16, 20, 16)
+                    background = android.graphics.drawable.GradientDrawable().apply {
+                        setColor(0xFF2D2D2D.toInt())
+                        cornerRadius = 16f
+                    }
+                }
+
+                // Label row
+                val labelText = TextView(this).apply {
+                    text = label
+                    setTextColor(labelColor)
+                    textSize = 12f
+                    setTypeface(null, android.graphics.Typeface.BOLD)
+                }
+
+                // Name/Number row
+                val nameRow = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
                 }
 
                 val callInfo = TextView(this).apply {
-                    text = "Call" // Will show number if available
+                    text = if (contactName != phoneNum) "$contactName\n$phoneNum" else phoneNum
                     setTextColor(0xFFFFFFFF.toInt())
-                    textSize = 14f
+                    textSize = 16f
                     layoutParams = LinearLayout.LayoutParams(
                         0,
                         LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -275,23 +310,50 @@ class InCallActivity : AppCompatActivity() {
                 }
 
                 val btnDisconnect = Button(this).apply {
-                    text = "Disconnect"
-                    setBackgroundColor(0xFFF44336.toInt())
+                    text = "End"
+                    setBackgroundColor(0xFFE53935.toInt())
                     setTextColor(0xFFFFFFFF.toInt())
                     textSize = 12f
-                    setPadding(16, 8, 16, 8)
+                    setPadding(24, 8, 24, 8)
+                    minimumWidth = 0
+                    minimumHeight = 0
                     setOnClickListener {
                         disconnectCall(call)
                     }
                 }
 
-                callItem.addView(callInfo)
-                callItem.addView(btnDisconnect)
+                nameRow.addView(callInfo)
+                nameRow.addView(btnDisconnect)
+
+                callItem.addView(labelText)
+                callItem.addView(nameRow)
                 activeCallsList.addView(callItem)
             }
         } else {
             activeCallsContainer.visibility = View.GONE
         }
+    }
+
+    private fun getContactNameForNumber(phoneNumber: String): String {
+        try {
+            val uri = android.net.Uri.withAppendedPath(
+                android.provider.ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+                android.net.Uri.encode(phoneNumber)
+            )
+            val cursor = contentResolver.query(
+                uri,
+                arrayOf(android.provider.ContactsContract.PhoneLookup.DISPLAY_NAME),
+                null, null, null
+            )
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    return it.getString(0)
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("InCallActivity", "Error looking up contact: ${e.message}")
+        }
+        return phoneNumber
     }
 
     private fun manualMerge() {

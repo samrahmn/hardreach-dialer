@@ -1,9 +1,11 @@
 package com.hardreach.dialer
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.provider.ContactsContract
 import android.telecom.Call
 import android.telecom.InCallService
 import android.util.Log
@@ -156,19 +158,44 @@ class HardreachInCallService : InCallService() {
         }
     }
 
+    private fun getContactName(phoneNumber: String): String {
+        try {
+            val uri = Uri.withAppendedPath(
+                ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+                Uri.encode(phoneNumber)
+            )
+            val cursor = contentResolver.query(
+                uri,
+                arrayOf(ContactsContract.PhoneLookup.DISPLAY_NAME),
+                null, null, null
+            )
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val name = it.getString(0)
+                    Log.i(TAG, "Found contact name: $name for $phoneNumber")
+                    return name
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error looking up contact: ${e.message}")
+        }
+        return phoneNumber // fallback to phone number if not found
+    }
+
     private fun launchInCallUI(call: Call) {
         try {
             val phoneNumber = call.details?.handle?.schemeSpecificPart ?: "Unknown"
+            val contactName = getContactName(phoneNumber)
 
-            Log.i(TAG, "Launching InCallActivity for: $phoneNumber (CRM call: $isCrmCall)")
-            RemoteLogger.i(applicationContext, TAG, "Launching InCallActivity for: $phoneNumber")
+            Log.i(TAG, "Launching InCallActivity for: $contactName ($phoneNumber) (CRM call: $isCrmCall)")
+            RemoteLogger.i(applicationContext, TAG, "Launching InCallActivity for: $contactName")
 
             val intent = Intent(this, InCallActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                         Intent.FLAG_ACTIVITY_SINGLE_TOP or
                         Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
                 putExtra("phone_number", phoneNumber)
-                putExtra("contact_name", phoneNumber)
+                putExtra("contact_name", contactName)
                 putExtra("is_crm_call", isCrmCall)  // For auto-mute
             }
             startActivity(intent)

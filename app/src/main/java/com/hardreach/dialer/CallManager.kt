@@ -173,7 +173,11 @@ class CallManager(private val context: Context) {
      */
     private fun callProspect(callId: Int, contactNumber: String) {
         Log.i(TAG, "Step 2: Calling prospect: $contactNumber")
+        Log.i(TAG, "DEBUG: contactNumber param = '$contactNumber'")
+        Log.i(TAG, "DEBUG: pendingContactNumber = '$pendingContactNumber'")
+        Log.i(TAG, "DEBUG: pendingTeamNumber = '$pendingTeamNumber'")
         RemoteLogger.i(context, TAG, "Step 2: Calling prospect: $contactNumber")
+        RemoteLogger.i(context, TAG, "DEBUG params - contact: $contactNumber, pending: $pendingContactNumber, team: $pendingTeamNumber")
         StatusManager.callStarted(contactNumber)
         StatusManager.log("Calling prospect: $contactNumber")
 
@@ -288,8 +292,14 @@ class CallManager(private val context: Context) {
      */
     private fun makeCall(phoneNumber: String) {
         try {
+            Log.i(TAG, "=== makeCall() called with: '$phoneNumber' ===")
+            RemoteLogger.i(context, TAG, "=== makeCall() input: '$phoneNumber' ===")
+
             val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
             val uri = Uri.fromParts("tel", phoneNumber, null)
+
+            Log.i(TAG, "URI created: $uri")
+            RemoteLogger.i(context, TAG, "URI: $uri")
 
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                 telecomManager.placeCall(uri, null)

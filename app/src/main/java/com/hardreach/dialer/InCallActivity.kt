@@ -29,7 +29,7 @@ class InCallActivity : AppCompatActivity() {
     private lateinit var btnHold: ImageButton
     private lateinit var btnEndCall: ImageButton
     private lateinit var btnRecord: ImageButton
-    private lateinit var btnMerge: ImageButton
+    private lateinit var btnMerge: Button
 
     private lateinit var labelMute: TextView
     private lateinit var labelSpeaker: TextView

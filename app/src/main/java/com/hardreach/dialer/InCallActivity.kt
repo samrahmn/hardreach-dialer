@@ -250,44 +250,90 @@ class InCallActivity : AppCompatActivity() {
         if (calls.size > 1) {
             activeCallsContainer.visibility = View.VISIBLE
 
-            calls.forEach { call ->
-                val callItem = LinearLayout(this).apply {
+            calls.forEachIndexed { index, call ->
+                // Try to get phone number from call
+                var phoneNum = "Call ${index + 1}"
+                try {
+                    val detailsMethod = call?.javaClass?.getMethod("getDetails")
+                    val details = detailsMethod?.invoke(call)
+                    val handleMethod = details?.javaClass?.getMethod("getHandle")
+                    val handle = handleMethod?.invoke(details)
+                    val schemeMethod = handle?.javaClass?.getMethod("getSchemeSpecificPart")
+                    phoneNum = schemeMethod?.invoke(handle) as? String ?: "Call ${index + 1}"
+                } catch (e: Exception) {
+                    android.util.Log.d("InCallActivity", "Could not get call number: ${e.message}")
+                }
+
+                // Card container with rounded corners
+                val callCard = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                     ).apply {
-                        setMargins(0, 0, 0, 16)
+                        setMargins(0, 0, 0, 12)
                     }
-                    setPadding(16, 12, 16, 12)
-                    setBackgroundColor(0xFF333333.toInt())
+                    setPadding(20, 16, 16, 16)
+                    background = android.graphics.drawable.GradientDrawable().apply {
+                        setColor(0xFF1E1E1E.toInt())
+                        cornerRadius = 16f
+                    }
+                    gravity = android.view.Gravity.CENTER_VERTICAL
                 }
 
-                val callInfo = TextView(this).apply {
-                    text = "Call" // Will show number if available
-                    setTextColor(0xFFFFFFFF.toInt())
-                    textSize = 14f
-                    layoutParams = LinearLayout.LayoutParams(
-                        0,
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        1f
-                    )
+                // Call icon
+                val callIcon = View(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(36, 36).apply {
+                        setMargins(0, 0, 16, 0)
+                    }
+                    background = android.graphics.drawable.GradientDrawable().apply {
+                        shape = android.graphics.drawable.GradientDrawable.OVAL
+                        setColor(0xFF4CAF50.toInt())
+                    }
                 }
 
-                val btnDisconnect = Button(this).apply {
-                    text = "Disconnect"
-                    setBackgroundColor(0xFFF44336.toInt())
+                // Call info container
+                val infoContainer = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                }
+
+                val callLabel = TextView(this).apply {
+                    text = if (index == 0) "Team Member" else "Prospect"
+                    setTextColor(0xFF888888.toInt())
+                    textSize = 11f
+                }
+
+                val callNumber = TextView(this).apply {
+                    text = phoneNum
                     setTextColor(0xFFFFFFFF.toInt())
+                    textSize = 15f
+                    typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+                }
+
+                infoContainer.addView(callLabel)
+                infoContainer.addView(callNumber)
+
+                // End button
+                val btnEnd = TextView(this).apply {
+                    text = "END"
+                    setTextColor(0xFFFF5252.toInt())
                     textSize = 12f
-                    setPadding(16, 8, 16, 8)
+                    typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+                    setPadding(24, 12, 24, 12)
+                    background = android.graphics.drawable.GradientDrawable().apply {
+                        setColor(0xFF2A2A2A.toInt())
+                        cornerRadius = 20f
+                    }
                     setOnClickListener {
                         disconnectCall(call)
                     }
                 }
 
-                callItem.addView(callInfo)
-                callItem.addView(btnDisconnect)
-                activeCallsList.addView(callItem)
+                callCard.addView(callIcon)
+                callCard.addView(infoContainer)
+                callCard.addView(btnEnd)
+                activeCallsList.addView(callCard)
             }
         } else {
             activeCallsContainer.visibility = View.GONE

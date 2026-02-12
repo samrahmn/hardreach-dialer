@@ -249,6 +249,14 @@ class InCallActivity : AppCompatActivity() {
     }
 
     /**
+     * Strip all non-digit characters for phone number comparison.
+     * CRM numbers may contain spaces/dashes that the telecom system strips.
+     */
+    private fun digitsOnly(number: String): String {
+        return number.replace(Regex("[^0-9]"), "")
+    }
+
+    /**
      * Label calls by matching phone number against known team/prospect numbers.
      * Filter out "Unknown" phantom legs from carrier conference rebuild.
      */
@@ -257,6 +265,10 @@ class InCallActivity : AppCompatActivity() {
 
         val teamNum = HardreachInCallService.teamMemberNumber
         val prospNum = HardreachInCallService.prospectNumber
+
+        // Normalize stored numbers to digits-only for comparison
+        val teamDigits = teamNum?.let { digitsOnly(it) }
+        val prospDigits = prospNum?.let { digitsOnly(it) }
 
         // Build list of (phoneNumber, callObject) filtering out Unknown
         val displayCalls = calls.mapNotNull { call ->
@@ -283,8 +295,9 @@ class InCallActivity : AppCompatActivity() {
         uniqueCalls.forEach { (phoneNum, call) ->
             val contactName = getContactNameForNumber(phoneNum)
 
-            // Label by matching number, not by index
-            val isTeam = teamNum != null && phoneNum.contains(teamNum.takeLast(9))
+            // Compare digits-only to handle format mismatches (spaces, dashes, etc.)
+            val phoneDigits = digitsOnly(phoneNum)
+            val isTeam = teamDigits != null && phoneDigits.endsWith(teamDigits.takeLast(9))
             val label = if (isTeam) "Team Member" else "Prospect"
             val labelColor = if (isTeam) 0xFF4CAF50.toInt() else 0xFF2196F3.toInt()
 

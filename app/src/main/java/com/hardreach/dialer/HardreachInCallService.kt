@@ -124,8 +124,9 @@ class HardreachInCallService : InCallService() {
                             handler.post {
                                 onFirstCallConnected?.invoke()
                             }
-                        } else if (callIndex == 2) {
+                        } else if (callIndex == 2 && onSecondCallConnected != null) {
                             // Second call connected — merge immediately, no delay
+                            // Guard on callback != null to ignore phantom conference legs
                             Log.i(TAG, "Second call connected - triggering immediate merge")
                             RemoteLogger.i(applicationContext, TAG, "Second call connected - merging NOW")
                             handler.post {

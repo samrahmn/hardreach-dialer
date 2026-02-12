@@ -53,7 +53,7 @@ class CallMergeAccessibilityService : AccessibilityService() {
             handler.removeCallbacksAndMessages(null)
             handler.postDelayed({
                 tryMergeCalls()
-            }, 2000) // Wait 2s for UI to stabilize
+            }, 500) // Brief delay for UI to render
         }
     }
 

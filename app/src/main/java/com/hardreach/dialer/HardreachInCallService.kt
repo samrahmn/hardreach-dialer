@@ -23,6 +23,9 @@ class HardreachInCallService : InCallService() {
         // Callback for when first call connects (used by CallManager)
         var onFirstCallConnected: (() -> Unit)? = null
 
+        // Callback for when second call connects — triggers immediate merge
+        var onSecondCallConnected: (() -> Unit)? = null
+
         // Track if first call is connected
         var isFirstCallConnected = false
 
@@ -38,6 +41,7 @@ class HardreachInCallService : InCallService() {
 
         fun reset() {
             onFirstCallConnected = null
+            onSecondCallConnected = null
             isFirstCallConnected = false
             isCrmCall = false
             callStates.clear()
@@ -112,15 +116,20 @@ class HardreachInCallService : InCallService() {
                         RemoteLogger.i(applicationContext, TAG, "✓✓ Call #$callIndex CONNECTED!")
                         StatusManager.log("✓ Call #$callIndex connected!")
 
-                        // If this is the first call connecting, notify CallManager
                         if (callIndex == 1 && !isFirstCallConnected) {
+                            // First call connected — notify CallManager to dial prospect
                             isFirstCallConnected = true
                             Log.i(TAG, "First call connected - triggering callback for second call")
                             RemoteLogger.i(applicationContext, TAG, "First call connected - ready for second call")
-
-                            // Notify CallManager that first call is connected
                             handler.post {
                                 onFirstCallConnected?.invoke()
+                            }
+                        } else if (callIndex == 2) {
+                            // Second call connected — merge immediately, no delay
+                            Log.i(TAG, "Second call connected - triggering immediate merge")
+                            RemoteLogger.i(applicationContext, TAG, "Second call connected - merging NOW")
+                            handler.post {
+                                onSecondCallConnected?.invoke()
                             }
                         }
                     }

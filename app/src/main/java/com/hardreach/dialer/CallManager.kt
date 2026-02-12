@@ -6,7 +6,6 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.telecom.TelecomManager
-import android.telephony.TelephonyManager
 import android.util.Log
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
@@ -22,13 +21,11 @@ class CallManager(private val context: Context) {
 
     private val TAG = "CallManager"
     private val handler = Handler(Looper.getMainLooper())
-    private val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
     private val client = OkHttpClient()
 
     // Timeouts
     private val FIRST_CALL_TIMEOUT = 60000L  // 60s max wait for first call to connect
     private val SECOND_CALL_TIMEOUT = 60000L // 60s max wait for second call to connect
-    private val MERGE_DELAY = 3000L          // 3s before merge attempt
 
     // Track call IDs currently being processed to prevent duplicates
     companion object {
@@ -199,70 +196,40 @@ class CallManager(private val context: Context) {
     }
 
     /**
-     * Called after first call is connected
+     * Called after first call is connected.
+     * Sets up callback so merge fires instantly when prospect answers.
      */
     private fun callProspect(callId: Int, contactNumber: String) {
-        Log.i(TAG, "Step 2: Calling prospect: $contactNumber")
-        Log.i(TAG, "DEBUG: contactNumber param = '$contactNumber'")
-        Log.i(TAG, "DEBUG: pendingContactNumber = '$pendingContactNumber'")
-        Log.i(TAG, "DEBUG: pendingTeamNumber = '$pendingTeamNumber'")
         RemoteLogger.i(context, TAG, "Step 2: Calling prospect: $contactNumber")
-        RemoteLogger.i(context, TAG, "DEBUG params - contact: $contactNumber, pending: $pendingContactNumber, team: $pendingTeamNumber")
         StatusManager.callStarted(contactNumber)
         StatusManager.log("Calling prospect: $contactNumber")
 
-        makeCall(contactNumber)
+        // Wire up instant merge — fires the moment call #2 goes STATE_ACTIVE
+        HardreachInCallService.onSecondCallConnected = {
+            Log.i(TAG, "✓ Second call connected - merging immediately")
+            RemoteLogger.i(context, TAG, "✓ Second call connected - merging NOW")
+            StatusManager.callConnected(pendingContactNumber ?: "prospect")
 
-        // Wait for second call to be active, then attempt merge
-        // We'll use a polling approach to check when both calls are active
-        checkForMergeReady(callId, 0)
-    }
+            // Cancel the second call timeout
+            timeoutRunnable?.let { handler.removeCallbacks(it) }
 
-    /**
-     * Check if both calls are active and ready to merge
-     */
-    private fun checkForMergeReady(callId: Int, attempts: Int) {
-        if (attempts > 30) { // 30 attempts * 2s = 60s max
-            Log.w(TAG, "Gave up waiting for second call to connect")
-            RemoteLogger.w(context, TAG, "Second call didn't connect - completing anyway")
-            // Still mark as completed since first call was successful
             attemptMergeAndComplete(callId)
-            return
         }
 
-        handler.postDelayed({
-            val callState = telephonyManager.callState
+        makeCall(contactNumber)
 
-            // Check if we have 2 active calls via InCallService
-            val instance = HardreachInCallService.instance
-            if (instance != null) {
-                // If InCallService shows 2 calls, we're ready to merge
-                val currentCall = HardreachInCallService.currentCall
-                if (currentCall != null) {
-                    val state = HardreachInCallService.getCallState(currentCall)
-                    if (state == android.telecom.Call.STATE_ACTIVE) {
-                        Log.i(TAG, "✓ Second call connected - ready to merge!")
-                        RemoteLogger.i(context, TAG, "✓ Second call connected - merging...")
-                        StatusManager.callConnected(pendingContactNumber ?: "prospect")
-                        attemptMergeAndComplete(callId)
-                        return@postDelayed
-                    }
-                }
-            }
-
-            // Also check if call ended
-            if (callState == TelephonyManager.CALL_STATE_IDLE) {
-                Log.w(TAG, "Calls ended before merge")
-                StatusManager.callFailed("Calls ended before merge")
+        // Timeout if prospect doesn't answer within 60s
+        timeoutRunnable = Runnable {
+            if (HardreachInCallService.onSecondCallConnected != null) {
+                Log.w(TAG, "✗ Second call timeout - prospect didn't answer")
+                RemoteLogger.w(context, TAG, "✗ Second call timeout - no answer from prospect")
+                StatusManager.callFailed("Prospect didn't answer (60s timeout)")
+                HardreachInCallService.onSecondCallConnected = null
                 updateCallStatus(callId, "failed")
                 cleanup()
-                return@postDelayed
             }
-
-            // Keep checking
-            Log.d(TAG, "Waiting for second call to connect... (attempt ${attempts + 1})")
-            checkForMergeReady(callId, attempts + 1)
-        }, 2000)
+        }
+        handler.postDelayed(timeoutRunnable!!, SECOND_CALL_TIMEOUT)
     }
 
     /**
@@ -303,16 +270,14 @@ class CallManager(private val context: Context) {
 
     private fun performMerge(callId: Int) {
         StatusManager.mergingCalls()
-        handler.postDelayed({
-            mergeCallsToConference()
+        mergeCallsToConference()
 
-            // Mark as completed
-            RemoteLogger.i(context, TAG, "✓ Conference flow complete - marking as COMPLETED")
-            Log.i(TAG, "✓✓ Conference flow complete - marking as COMPLETED")
-            updateCallStatus(callId, "completed")
-            StatusManager.log("✓ Conference call completed!")
-            cleanup()
-        }, MERGE_DELAY)
+        // Mark as completed
+        RemoteLogger.i(context, TAG, "✓ Conference flow complete - marking as COMPLETED")
+        Log.i(TAG, "✓✓ Conference flow complete - marking as COMPLETED")
+        updateCallStatus(callId, "completed")
+        StatusManager.log("✓ Conference call completed!")
+        cleanup()
     }
 
     /**

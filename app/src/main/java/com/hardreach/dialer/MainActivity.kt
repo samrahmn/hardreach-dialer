@@ -302,43 +302,49 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestDefaultDialer() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val telecomManager = getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-            val isDefaultDialer = packageName == telecomManager.defaultDialerPackage
+        val telecomManager = getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+        val isDefaultDialer = packageName == telecomManager.defaultDialerPackage
 
-            logText.text = "Current default dialer: ${telecomManager.defaultDialerPackage}\n" +
-                          "Is Hardreach default: $isDefaultDialer"
+        RemoteLogger.i(this, "MainActivity", "Current default dialer: ${telecomManager.defaultDialerPackage}")
 
-            RemoteLogger.i(this, "MainActivity", "Current default dialer: ${telecomManager.defaultDialerPackage}")
-            RemoteLogger.i(this, "MainActivity", "Is Hardreach default: $isDefaultDialer")
+        if (isDefaultDialer) {
+            Toast.makeText(this, "Hardreach is already the default dialer!", Toast.LENGTH_LONG).show()
+            return
+        }
 
-            if (!isDefaultDialer) {
-                try {
-                    val intent = Intent(TelecomManager.ACTION_CHANGE_DEFAULT_DIALER).apply {
-                        putExtra(TelecomManager.EXTRA_CHANGE_DEFAULT_DIALER_PACKAGE_NAME, packageName)
-                    }
-
-                    // Verify the intent can be resolved
-                    if (intent.resolveActivity(packageManager) != null) {
-                        startActivityForResult(intent, DEFAULT_DIALER_REQUEST_CODE)
-                        RemoteLogger.i(this, "MainActivity", "✓ Launched default dialer selection dialog")
-                        Toast.makeText(this, "Select Hardreach Dialer from the list", Toast.LENGTH_LONG).show()
-                    } else {
-                        // Fallback: Open default apps settings
-                        val settingsIntent = Intent(android.provider.Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS)
-                        startActivity(settingsIntent)
-                        Toast.makeText(this, "Go to Phone app → Select Hardreach Dialer", Toast.LENGTH_LONG).show()
-                        RemoteLogger.w(this, "MainActivity", "Intent not resolvable, opened settings instead")
-                    }
-                } catch (e: Exception) {
-                    Toast.makeText(this, "Please set manually: Settings → Apps → Default apps → Phone app", Toast.LENGTH_LONG).show()
-                    RemoteLogger.e(this, "MainActivity", "❌ Error requesting default dialer: ${e.message}")
+        // Android 10+ (API 29): Use RoleManager — the reliable way
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                val roleManager = getSystemService(Context.ROLE_SERVICE) as android.app.role.RoleManager
+                if (roleManager.isRoleAvailable(android.app.role.RoleManager.ROLE_DIALER) &&
+                    !roleManager.isRoleHeld(android.app.role.RoleManager.ROLE_DIALER)) {
+                    val intent = roleManager.createRequestRoleIntent(android.app.role.RoleManager.ROLE_DIALER)
+                    startActivityForResult(intent, DEFAULT_DIALER_REQUEST_CODE)
+                    RemoteLogger.i(this, "MainActivity", "Launched RoleManager dialer request")
+                    return
                 }
-            } else {
-                Toast.makeText(this, "✅ Hardreach is already the default dialer!", Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                RemoteLogger.e(this, "MainActivity", "RoleManager failed: ${e.message}")
             }
-        } else {
-            Toast.makeText(this, "Requires Android 6.0 or higher", Toast.LENGTH_SHORT).show()
+        }
+
+        // Android 6-9: Use legacy TelecomManager intent
+        try {
+            val intent = Intent(TelecomManager.ACTION_CHANGE_DEFAULT_DIALER).apply {
+                putExtra(TelecomManager.EXTRA_CHANGE_DEFAULT_DIALER_PACKAGE_NAME, packageName)
+            }
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivityForResult(intent, DEFAULT_DIALER_REQUEST_CODE)
+                RemoteLogger.i(this, "MainActivity", "Launched legacy default dialer dialog")
+            } else {
+                // Last resort: open default apps settings page
+                startActivity(Intent(android.provider.Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
+                Toast.makeText(this, "Go to Phone app and select Hardreach Dialer", Toast.LENGTH_LONG).show()
+            }
+        } catch (e: Exception) {
+            startActivity(Intent(android.provider.Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
+            Toast.makeText(this, "Go to Phone app and select Hardreach Dialer", Toast.LENGTH_LONG).show()
+            RemoteLogger.e(this, "MainActivity", "All methods failed, opened settings: ${e.message}")
         }
     }
 

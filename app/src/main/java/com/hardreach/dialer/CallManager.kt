@@ -205,7 +205,12 @@ class CallManager(private val context: Context) {
         StatusManager.log("Calling prospect: $contactNumber")
 
         // Wire up instant merge — fires the moment call #2 goes STATE_ACTIVE
+        // Nulled immediately on first invocation to prevent duplicate merges
+        // when the carrier rebuilds conference legs as new Call objects
         HardreachInCallService.onSecondCallConnected = {
+            // Fire once only — carrier creates new Call objects after conference()
+            HardreachInCallService.onSecondCallConnected = null
+
             Log.i(TAG, "✓ Second call connected - merging immediately")
             RemoteLogger.i(context, TAG, "✓ Second call connected - merging NOW")
             StatusManager.callConnected(pendingContactNumber ?: "prospect")

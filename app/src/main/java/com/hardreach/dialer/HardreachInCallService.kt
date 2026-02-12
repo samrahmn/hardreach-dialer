@@ -32,6 +32,13 @@ class HardreachInCallService : InCallService() {
         // Track if this is a CRM-triggered call (for auto-mute)
         var isCrmCall = false
 
+        // Track if conference has been established (to ignore phantom legs)
+        var conferenceEstablished = false
+
+        // Store the original numbers for proper labeling
+        var teamMemberNumber: String? = null
+        var prospectNumber: String? = null
+
         // Track call states
         private val callStates = mutableMapOf<Call, Int>()
 
@@ -44,6 +51,9 @@ class HardreachInCallService : InCallService() {
             onSecondCallConnected = null
             isFirstCallConnected = false
             isCrmCall = false
+            conferenceEstablished = false
+            teamMemberNumber = null
+            prospectNumber = null
             callStates.clear()
         }
 
@@ -87,13 +97,14 @@ class HardreachInCallService : InCallService() {
         callCallbacks[call] = callback
         callStates[call] = call.state
 
-        // Launch InCallActivity UI
-        launchInCallUI(call)
+        // Don't launch new UI for phantom legs after conference is established
+        if (!conferenceEstablished) {
+            launchInCallUI(call)
 
-        if (activeCalls.size == 2) {
-            Log.i(TAG, "✓✓ BOTH CALLS PLACED - manually tap Merge button to connect")
-            RemoteLogger.i(applicationContext, TAG, "✓✓ BOTH CALLS PLACED - manually tap Merge to connect")
-            StatusManager.log("2 calls active - tap Merge button in phone UI")
+            if (activeCalls.size == 2) {
+                Log.i(TAG, "✓✓ BOTH CALLS PLACED - ready to merge")
+                RemoteLogger.i(applicationContext, TAG, "✓✓ BOTH CALLS PLACED - ready to merge")
+            }
         }
     }
 
@@ -234,6 +245,7 @@ class HardreachInCallService : InCallService() {
 
             // Try conference method on first call
             firstCall.conference(secondCall)
+            conferenceEstablished = true
             Log.i(TAG, "✓ Conference merge command sent")
             RemoteLogger.i(applicationContext, TAG, "✓ Conference merge initiated")
             StatusManager.log("✓ Calls merged into conference!")

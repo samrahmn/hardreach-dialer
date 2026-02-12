@@ -217,13 +217,18 @@ class InCallActivity : AppCompatActivity() {
     }
 
     private fun monitorActiveCalls() {
-        // Check for multiple calls periodically
         val checkRunnable = object : Runnable {
             override fun run() {
                 val activeCalls = HardreachInCallService.getActiveCalls()
+                val isConference = HardreachInCallService.conferenceEstablished
 
-                if (activeCalls.size >= 2) {
-                    // Show merge button when 2+ calls
+                if (isConference) {
+                    // Conference mode — filter to known numbers only
+                    btnMergeContainer.visibility = View.GONE
+                    activeCallsContainer.visibility = View.VISIBLE
+                    callStatus.text = "Conference"
+                    updateCallsList(activeCalls)
+                } else if (activeCalls.size >= 2) {
                     btnMergeContainer.visibility = View.VISIBLE
                     activeCallsContainer.visibility = View.VISIBLE
                     updateCallsList(activeCalls)
@@ -233,7 +238,6 @@ class InCallActivity : AppCompatActivity() {
                     activeCallsContainer.visibility = View.GONE
                     callStatus.text = "Active"
                 } else {
-                    // No calls - close activity
                     finish()
                     return
                 }
@@ -244,93 +248,106 @@ class InCallActivity : AppCompatActivity() {
         handler.post(checkRunnable)
     }
 
+    /**
+     * Label calls by matching phone number against known team/prospect numbers.
+     * Filter out "Unknown" phantom legs from carrier conference rebuild.
+     */
     private fun updateCallsList(calls: List<*>) {
         activeCallsList.removeAllViews()
 
-        if (calls.size > 1) {
-            activeCallsContainer.visibility = View.VISIBLE
+        val teamNum = HardreachInCallService.teamMemberNumber
+        val prospNum = HardreachInCallService.prospectNumber
 
-            calls.forEachIndexed { index, call ->
-                // Get phone number from Call object
-                val phoneNum = try {
-                    val telecomCall = call as? android.telecom.Call
-                    telecomCall?.details?.handle?.schemeSpecificPart ?: "Unknown"
-                } catch (e: Exception) {
-                    "Unknown"
-                }
-
-                // Get contact name for this number
-                val contactName = getContactNameForNumber(phoneNum)
-
-                // Label: first call is usually team member, second is prospect
-                val label = if (index == 0) "Team Member" else "Prospect"
-                val labelColor = if (index == 0) 0xFF4CAF50.toInt() else 0xFF2196F3.toInt()
-
-                val callItem = LinearLayout(this).apply {
-                    orientation = LinearLayout.VERTICAL
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        setMargins(0, 0, 0, 12)
-                    }
-                    setPadding(20, 16, 20, 16)
-                    background = android.graphics.drawable.GradientDrawable().apply {
-                        setColor(0xFF2D2D2D.toInt())
-                        cornerRadius = 16f
-                    }
-                }
-
-                // Label row
-                val labelText = TextView(this).apply {
-                    text = label
-                    setTextColor(labelColor)
-                    textSize = 12f
-                    setTypeface(null, android.graphics.Typeface.BOLD)
-                }
-
-                // Name/Number row
-                val nameRow = LinearLayout(this).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
-                }
-
-                val callInfo = TextView(this).apply {
-                    text = if (contactName != phoneNum) "$contactName\n$phoneNum" else phoneNum
-                    setTextColor(0xFFFFFFFF.toInt())
-                    textSize = 16f
-                    layoutParams = LinearLayout.LayoutParams(
-                        0,
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        1f
-                    )
-                }
-
-                val btnDisconnect = Button(this).apply {
-                    text = "End"
-                    setBackgroundColor(0xFFE53935.toInt())
-                    setTextColor(0xFFFFFFFF.toInt())
-                    textSize = 12f
-                    setPadding(24, 8, 24, 8)
-                    minimumWidth = 0
-                    minimumHeight = 0
-                    setOnClickListener {
-                        disconnectCall(call)
-                    }
-                }
-
-                nameRow.addView(callInfo)
-                nameRow.addView(btnDisconnect)
-
-                callItem.addView(labelText)
-                callItem.addView(nameRow)
-                activeCallsList.addView(callItem)
+        // Build list of (phoneNumber, callObject) filtering out Unknown
+        val displayCalls = calls.mapNotNull { call ->
+            val phoneNum = try {
+                val telecomCall = call as? android.telecom.Call
+                telecomCall?.details?.handle?.schemeSpecificPart ?: "Unknown"
+            } catch (e: Exception) {
+                "Unknown"
             }
-        } else {
+            if (phoneNum == "Unknown") null else Pair(phoneNum, call)
+        }
+
+        // Deduplicate by phone number (keep first occurrence)
+        val seen = mutableSetOf<String>()
+        val uniqueCalls = displayCalls.filter { (num, _) -> seen.add(num) }
+
+        if (uniqueCalls.isEmpty()) {
             activeCallsContainer.visibility = View.GONE
+            return
+        }
+
+        activeCallsContainer.visibility = View.VISIBLE
+
+        uniqueCalls.forEach { (phoneNum, call) ->
+            val contactName = getContactNameForNumber(phoneNum)
+
+            // Label by matching number, not by index
+            val isTeam = teamNum != null && phoneNum.contains(teamNum.takeLast(9))
+            val label = if (isTeam) "Team Member" else "Prospect"
+            val labelColor = if (isTeam) 0xFF4CAF50.toInt() else 0xFF2196F3.toInt()
+
+            val callItem = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 0, 0, 12)
+                }
+                setPadding(20, 16, 20, 16)
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    setColor(0xFF2D2D2D.toInt())
+                    cornerRadius = 16f
+                }
+            }
+
+            val labelText = TextView(this).apply {
+                text = label
+                setTextColor(labelColor)
+                textSize = 12f
+                setTypeface(null, android.graphics.Typeface.BOLD)
+            }
+
+            val nameRow = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+
+            val callInfo = TextView(this).apply {
+                text = if (contactName != phoneNum) "$contactName\n$phoneNum" else phoneNum
+                setTextColor(0xFFFFFFFF.toInt())
+                textSize = 16f
+                layoutParams = LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1f
+                )
+            }
+
+            val btnDisconnect = Button(this).apply {
+                text = "End"
+                setBackgroundColor(0xFFE53935.toInt())
+                setTextColor(0xFFFFFFFF.toInt())
+                textSize = 12f
+                setPadding(24, 8, 24, 8)
+                minimumWidth = 0
+                minimumHeight = 0
+                setOnClickListener {
+                    disconnectCall(call)
+                }
+            }
+
+            nameRow.addView(callInfo)
+            nameRow.addView(btnDisconnect)
+
+            callItem.addView(labelText)
+            callItem.addView(nameRow)
+            activeCallsList.addView(callItem)
         }
     }
 

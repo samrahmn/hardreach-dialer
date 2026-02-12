@@ -407,7 +407,12 @@ class CallManager(private val context: Context) {
         pendingContactNumber = null
         pendingTeamNumber = null
         timeoutRunnable = null
-        HardreachInCallService.reset()
+
+        // Only reset callbacks, NOT conference state or numbers —
+        // those are needed by InCallActivity to label phantom legs correctly
+        HardreachInCallService.onFirstCallConnected = null
+        HardreachInCallService.onSecondCallConnected = null
+
         StatusManager.idle()
         Log.d(TAG, "Cleanup complete")
     }

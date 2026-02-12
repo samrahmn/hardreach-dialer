@@ -287,10 +287,13 @@ class HardreachInCallService : InCallService() {
             currentCall = activeCalls.lastOrNull()
         }
 
-        // If no more calls, clear state
+        // If no more calls, full reset for next conference
         if (activeCalls.isEmpty()) {
             currentCall = null
             isFirstCallConnected = false
+            conferenceEstablished = false
+            teamMemberNumber = null
+            prospectNumber = null
             StatusManager.log("All calls ended")
         }
     }
